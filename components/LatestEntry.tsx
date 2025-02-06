@@ -1,57 +1,59 @@
 import { useEffect, useCallback, useState } from "react";
+import sdk, { type FrameContext } from "@farcaster/frame-sdk";
 
 interface Entry {
+  id: string;
   title: string;
   link: string;
   content: string;
   date: string;
-  media: string; // Video or Image
+  media: string;
 }
 
 export default function LatestEntry() {
   const [entry, setEntry] = useState<Entry | null>(null);
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [sdk, setSdk] = useState<any>(null);
-  const [isExplanationOpen, setIsExplanationOpen] = useState(false); // Toggle state
+  const [context, setContext] = useState<FrameContext | undefined>(undefined);
+  const [isExplanationOpen, setIsExplanationOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  /**
+   * Load the Farcaster SDK and fetch the user context.
+   */
   useEffect(() => {
-    // Dynamically import the SDK and signal readiness
-    const loadSDK = async () => {
-      const importedSdk = (await import("@farcaster/frame-sdk")).default;
-      setSdk(importedSdk);
-
-      // Get user context
+    const loadSDK = async (): Promise<void> => {
       try {
+        const importedSdk = (await import("@farcaster/frame-sdk")).default;
+
+        // Fetch the context
         const sdkContext = await importedSdk.context;
-        console.log('[Component] Raw SDK context:', sdkContext);
-        
-        if (sdkContext && typeof sdkContext === 'object') {
-          const fid = sdkContext.fid ? Number(sdkContext.fid) : null;
-          const username = sdkContext.username ? String(sdkContext.username) : null;
-          
-          if (fid && username) {
-          console.log('[Component] Validated context - FID:', fid, 'Username:', username);
-          await fetch('/api/users', {
-            method: 'POST',
+
+        // Validate context
+        const userFid = sdkContext?.user?.fid;
+        const userUsername = sdkContext?.user?.username;
+
+        if (userFid && userUsername) {
+          setContext(sdkContext);
+
+          // Send POST request to save user info
+          await fetch("/api/users", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              fid: Number(context.fid),
-              username: String(context.username),
+              fid: userFid,
+              username: userUsername,
             }),
           });
         } else {
-            console.log('[Component] Invalid or missing user context data');
-          }
-        } else {
-          console.log('[Component] Invalid or missing SDK context object');
+          setErrorMessage("Unable to fetch user context. Ensure the frame is configured correctly.");
         }
-      } catch (error) {
-        console.error('[Component] Error processing SDK context:', error);
-      }
 
-      importedSdk.actions.ready();
+        importedSdk.actions.ready();
+      } catch (error) {
+        setErrorMessage("An error occurred while loading the SDK. Please refresh and try again.");
+      }
     };
 
     if (!isSDKLoaded) {
@@ -60,92 +62,42 @@ export default function LatestEntry() {
     }
   }, [isSDKLoaded]);
 
-  // Function to fetch RSS data
+  /**
+   * Fetch the latest RSS entry from the API.
+   */
   const fetchEntry = async () => {
-    console.log('[Component] Fetching latest entry');
     try {
       const response = await fetch("/api/fetchLatest");
       const data: Entry = await response.json();
       setEntry(data);
-      console.log('[Component] Successfully fetched entry:', data.title);
-      // If we have user context from Farcaster, post the interaction
-      if (sdk && sdk.context?.fid) {
-        console.log('[Component] Attempting POST request with FID:', sdk.context.fid);
-        try {
-          const postResponse = await fetch("/api/fetchLatest", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              fid: sdk.context.fid,
-              entryId: data.id,
-            }),
-          });
-          console.log('[Component] POST response status:', postResponse.status);
-          const postData = await postResponse.json();
-          console.log('[Component] POST response data:', postData);
-        } catch (error) {
-          console.error('[Component] POST request failed:', error);
-        }
-      } else {
-        console.log('[Component] No FID found in SDK context');
-      }
     } catch (error) {
-      console.error("[Component] Failed to fetch RSS entry:", error);
+      console.error("Failed to fetch RSS entry:", error);
     }
   };
 
   useEffect(() => {
-    fetchEntry(); // Fetch on initial mount
-
-    // Auto-refresh once a day (24 hours = 86,400,000 milliseconds)
-    const interval = setInterval(() => {
-      fetchEntry();
-    }, 86400000);
-
-    return () => clearInterval(interval); // Cleanup on unmount
+    fetchEntry();
+    const interval = setInterval(fetchEntry, 86400000); // Refresh every 24 hours
+    return () => clearInterval(interval);
   }, []);
 
-  // Separate useEffect for handling user context
-  useEffect(() => {
-    const checkUserContext = async () => {
-      console.log('[Component] SDK Context:', sdk?.context);
-      if (sdk?.context?.fid && typeof sdk.context.fid === 'number' && sdk?.context?.username) {
-        console.log('[Component] Found valid user context, attempting to save user');
-        try {
-          const response = await fetch('/api/users', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              fid: sdk.context.fid,
-              username: sdk.context.username,
-            }),
-          });
-          const data = await response.json();
-          console.log('[Component] User save response:', data);
-        } catch (error) {
-          console.error('[Component] Failed to save user:', error);
-        }
-      } else {
-        console.log('[Component] No valid user context found');
-      }
-    };
-
-    checkUserContext();
-  }, [sdk]);
-
   const openUrl = useCallback(() => {
-    if (sdk && entry?.link) {
+    if (context && entry?.link) {
       sdk.actions.openUrl(entry.link);
     }
-  }, [sdk, entry]);
+  }, [context, entry]);
 
   const toggleExplanation = useCallback(() => {
     setIsExplanationOpen((prev) => !prev);
   }, []);
+
+  if (errorMessage) {
+    return (
+      <div className="error-container">
+        <p className="error-message">{errorMessage}</p>
+      </div>
+    );
+  }
 
   if (!entry) return <p>Loading...</p>;
 
@@ -154,8 +106,8 @@ export default function LatestEntry() {
       <h2 className="rss-title">{entry.title}</h2>
       <p className="rss-date">{entry.date}</p>
 
-      {/* Display video if available, otherwise fallback to image */}
-      {entry.media.includes("youtube.com") ? (
+      {/* Render video or image */}
+      {entry.media?.includes("youtube.com") ? (
         <iframe
           className="rss-video"
           src={entry.media}
@@ -168,23 +120,21 @@ export default function LatestEntry() {
         <img src={entry.media} alt={entry.title} className="rss-image" />
       )}
 
-      {/* Toggle Button for Explanation */}
+      {/* Toggle Explanation */}
       <button className="rss-toggle-button" onClick={toggleExplanation}>
         <span className={`rss-toggle-icon ${isExplanationOpen ? "open" : ""}`}>
           ➤
         </span>
         Learn about this photo
       </button>
-
-      {/* Show Explanation if Toggle is Open */}
       {isExplanationOpen && (
         <div className="rss-explanation">
           <div dangerouslySetInnerHTML={{ __html: entry.content }} />
         </div>
       )}
 
-      {/* Button to open the link */}
-      <button className="rss-button" onClick={openUrl} disabled={!sdk}>
+      {/* Open Link */}
+      <button className="rss-button" onClick={openUrl}>
         See this photo on apod.nasa.gov
       </button>
     </div>
