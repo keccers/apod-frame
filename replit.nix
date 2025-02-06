@@ -1,4 +1,6 @@
-{pkgs}: {
+
+{ pkgs }: {
   deps = [
+    pkgs.openssl
   ];
 }
