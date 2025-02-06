@@ -22,13 +22,14 @@ export default function LatestEntry() {
 
       // Get user context
       try {
-        const context = await importedSdk.context;
-        console.log('[Component] Raw SDK context:', context);
+        const sdkContext = await importedSdk.context;
+        console.log('[Component] Raw SDK context:', sdkContext);
         
-        const fid = context?.fid ? Number(context.fid) : null;
-        const username = context?.username ? String(context.username) : null;
-        
-        if (fid && username) {
+        if (sdkContext && typeof sdkContext === 'object') {
+          const fid = sdkContext.fid ? Number(sdkContext.fid) : null;
+          const username = sdkContext.username ? String(sdkContext.username) : null;
+          
+          if (fid && username) {
           console.log('[Component] Validated context - FID:', fid, 'Username:', username);
           await fetch('/api/users', {
             method: 'POST',
@@ -41,7 +42,10 @@ export default function LatestEntry() {
             }),
           });
         } else {
-          console.log('[Component] Invalid or missing user context');
+            console.log('[Component] Invalid or missing user context data');
+          }
+        } else {
+          console.log('[Component] Invalid or missing SDK context object');
         }
       } catch (error) {
         console.error('[Component] Error processing SDK context:', error);
