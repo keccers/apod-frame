@@ -57,6 +57,29 @@ export default function LatestEntry() {
       const data: Entry = await response.json();
       setEntry(data);
       console.log('[Component] Successfully fetched entry:', data.title);
+      // If we have user context from Farcaster, post the interaction
+      if (sdk && sdk.context?.fid) {
+        console.log('[Component] Attempting POST request with FID:', sdk.context.fid);
+        try {
+          const postResponse = await fetch("/api/fetchLatest", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fid: sdk.context.fid,
+              entryId: data.id,
+            }),
+          });
+          console.log('[Component] POST response status:', postResponse.status);
+          const postData = await postResponse.json();
+          console.log('[Component] POST response data:', postData);
+        } catch (error) {
+          console.error('[Component] POST request failed:', error);
+        }
+      } else {
+        console.log('[Component] No FID found in SDK context');
+      }
     } catch (error) {
       console.error("[Component] Failed to fetch RSS entry:", error);
     }

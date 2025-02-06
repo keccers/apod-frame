@@ -8,6 +8,9 @@ const parser = new XMLParser({ ignoreAttributes: false });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   console.log(`[API] ${req.method} request to /api/fetchLatest`);
+  if (req.method === 'POST') {
+    console.log('[API] POST request body:', req.body);
+  }
   try {
     const response = await axios.get(feedUrl);
     const feed = parser.parse(response.data);
