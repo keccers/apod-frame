@@ -1,0 +1,21 @@
+model User {
+  id                String   @id @default(cuid())
+  fid               Int      @unique
+  username          String
+  notificationToken String?
+  notificationUrl   String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  interactions      Entry[]  @relation("UserInteractions")
+}
+
+model Entry {
+  id           String   @id @default(cuid())
+  title        String
+  link         String
+  content      String
+  date         DateTime
+  media        String
+  createdAt    DateTime @default(now())
+  interactions User[]   @relation("UserInteractions")
+}
