@@ -63,22 +63,20 @@ export default function LatestEntry() {
   }, [isSDKLoaded]);
 
   /**
-   * Fetch the latest RSS entry from the API.
+   * Fetch the latest RSS entry once on component mount.
    */
-  const fetchEntry = async () => {
-    try {
-      const response = await fetch("/api/fetchLatest");
-      const data: Entry = await response.json();
-      setEntry(data);
-    } catch (error) {
-      console.error("Failed to fetch RSS entry:", error);
-    }
-  };
-
   useEffect(() => {
-    fetchEntry();
-    const interval = setInterval(fetchEntry, 86400000); // Refresh every 24 hours
-    return () => clearInterval(interval);
+    const fetchEntry = async () => {
+      try {
+        const response = await fetch("/api/fetchLatest");
+        const data: Entry = await response.json();
+        setEntry(data);
+      } catch (error) {
+        console.error("Failed to fetch RSS entry:", error);
+      }
+    };
+
+    fetchEntry(); // Fetch once when component mounts
   }, []);
 
   const openUrl = useCallback(() => {

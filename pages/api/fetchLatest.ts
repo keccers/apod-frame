@@ -1,61 +1,25 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import axios from "axios";
-import { XMLParser } from "fast-xml-parser";
-import * as cheerio from "cheerio";
-
-const feedUrl = "https://apod.com/feed.rss"; // Replace with correct RSS URL
-const parser = new XMLParser({ ignoreAttributes: false });
+import pool from "../../lib/db";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log(`[API] ${req.method} request to /api/fetchLatest`);
-  if (req.method === 'POST') {
-    console.log('[API] POST request body:', req.body);
-  }
-  try {
-    const response = await axios.get(feedUrl);
-    const feed = parser.parse(response.data);
+  if (req.method === "GET") {
+    try {
+      console.log("[API] Fetching latest RSS entry from database...");
 
-    const latestEntry = feed.rss.channel.item[0];
+      const result = await pool.query("SELECT * FROM latest_rss ORDER BY date DESC LIMIT 1;");
 
-    // Load content into Cheerio
-    const $ = cheerio.load(latestEntry["content:encoded"] || "");
+      if (result.rows.length === 0) {
+        console.warn("[API] No RSS data found in the database.");
+        return res.status(404).json({ error: "No RSS data available" });
+      }
 
-    let mediaUrl = "";
-
-    // Check for embedded YouTube video
-    const iframe = $("iframe[src*='youtube.com']");
-    if (iframe.length > 0) {
-      mediaUrl = iframe.attr("src") || ""; // Extract video URL
-      iframe.remove(); // Remove the video from the content so it's not duplicated
-    } else {
-      // If no video, fall back to image
-      mediaUrl = $("img").attr("src") || "";
-      $("img").remove();
+      console.log("[API] Latest RSS entry retrieved:", result.rows[0]);
+      res.status(200).json(result.rows[0]);
+    } catch (error) {
+      console.error("[API] Database error fetching RSS entry:", error);
+      res.status(500).json({ error: "Failed to fetch RSS entry" });
     }
-
-    // Remove all links from the body
-    $("a").each((_, el) => {
-      $(el).replaceWith($(el).text());
-    });
-
-    // Replace <br> tags with spaces
-    $("br").replaceWith(" ");
-
-    // Normalize content
-    const cleanedContent = $.html()
-      .replace(/>\s+</g, "><") // Remove spaces between tags
-      .replace(/\s+/g, " ") // Collapse multiple spaces
-      .trim();
-
-    res.status(200).json({
-      title: latestEntry.title,
-      link: latestEntry.link,
-      content: cleanedContent,
-      date: latestEntry.pubDate,
-      media: mediaUrl, // Video or image
-    });
-  } catch (error) {
-    console.error("RSS Fetch Error:", error);
-    res.status(500).json({ error: "Failed to fetch RSS feed" });
+  } else {
+    res.status(405).json({ error: "Method not allowed" });
   }
 }
