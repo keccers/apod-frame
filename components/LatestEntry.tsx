@@ -96,6 +96,35 @@ export default function LatestEntry() {
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
+  // Separate useEffect for handling user context
+  useEffect(() => {
+    const checkUserContext = async () => {
+      if (sdk && sdk.context?.fid && sdk.context?.username) {
+        console.log('[Component] Found user context, attempting to save user');
+        try {
+          const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              fid: sdk.context.fid,
+              username: sdk.context.username,
+            }),
+          });
+          const data = await response.json();
+          console.log('[Component] User save response:', data);
+        } catch (error) {
+          console.error('[Component] Failed to save user:', error);
+        }
+      } else {
+        console.log('[Component] No valid user context found');
+      }
+    };
+
+    checkUserContext();
+  }, [sdk]);
+
   const openUrl = useCallback(() => {
     if (sdk && entry?.link) {
       sdk.actions.openUrl(entry.link);
