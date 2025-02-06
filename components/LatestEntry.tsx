@@ -21,10 +21,15 @@ export default function LatestEntry() {
       setSdk(importedSdk);
 
       // Get user context
-      const context = await importedSdk.context;
-      if (context && typeof context.fid === 'number' && typeof context.username === 'string') {
-        // Create/update user in database
-        try {
+      try {
+        const context = await importedSdk.context;
+        console.log('[Component] Raw SDK context:', context);
+        
+        const fid = context?.fid ? Number(context.fid) : null;
+        const username = context?.username ? String(context.username) : null;
+        
+        if (fid && username) {
+          console.log('[Component] Validated context - FID:', fid, 'Username:', username);
           await fetch('/api/users', {
             method: 'POST',
             headers: {
@@ -35,9 +40,11 @@ export default function LatestEntry() {
               username: String(context.username),
             }),
           });
-        } catch (error) {
-          console.error('Failed to save user:', error);
+        } else {
+          console.log('[Component] Invalid or missing user context');
         }
+      } catch (error) {
+        console.error('[Component] Error processing SDK context:', error);
       }
 
       importedSdk.actions.ready();
