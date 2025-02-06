@@ -5,6 +5,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     try {
       const { fid, username } = req.body;
+      
+      if (!fid || typeof fid !== 'number') {
+        console.error('Invalid FID:', fid);
+        return res.status(400).json({ error: 'Invalid FID' });
+      }
 
       const result = await pool.query(
         `INSERT INTO users (fid, username) 

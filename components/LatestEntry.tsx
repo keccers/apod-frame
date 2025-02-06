@@ -99,8 +99,9 @@ export default function LatestEntry() {
   // Separate useEffect for handling user context
   useEffect(() => {
     const checkUserContext = async () => {
-      if (sdk && sdk.context?.fid && sdk.context?.username) {
-        console.log('[Component] Found user context, attempting to save user');
+      console.log('[Component] SDK Context:', sdk?.context);
+      if (sdk?.context?.fid && typeof sdk.context.fid === 'number' && sdk?.context?.username) {
+        console.log('[Component] Found valid user context, attempting to save user');
         try {
           const response = await fetch('/api/users', {
             method: 'POST',
