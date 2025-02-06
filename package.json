@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@farcaster/frame-sdk": "^0.0.26",
+    "@prisma/client": "^6.3.1",
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
     "fast-xml-parser": "^4.5.1",
