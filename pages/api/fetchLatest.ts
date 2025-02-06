@@ -7,6 +7,7 @@ const feedUrl = "https://apod.com/feed.rss"; // Replace with correct RSS URL
 const parser = new XMLParser({ ignoreAttributes: false });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log(`[API] ${req.method} request to /api/fetchLatest`);
   try {
     const response = await axios.get(feedUrl);
     const feed = parser.parse(response.data);

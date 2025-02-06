@@ -51,12 +51,14 @@ export default function LatestEntry() {
 
   // Function to fetch RSS data
   const fetchEntry = async () => {
+    console.log('[Component] Fetching latest entry');
     try {
       const response = await fetch("/api/fetchLatest");
       const data: Entry = await response.json();
       setEntry(data);
+      console.log('[Component] Successfully fetched entry:', data.title);
     } catch (error) {
-      console.error("Failed to fetch RSS entry:", error);
+      console.error("[Component] Failed to fetch RSS entry:", error);
     }
   };
 
