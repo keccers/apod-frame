@@ -48,6 +48,8 @@ export default function LatestEntry() {
           });
         } else {
           setErrorMessage("Unable to fetch user context. Ensure the frame is configured correctly.");
+        } {
+          setErrorMessage("Unable to fetch user context. Ensure the frame is configured correctly.");
         }
 
         importedSdk.actions.ready();
