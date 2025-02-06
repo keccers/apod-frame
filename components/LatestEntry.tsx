@@ -22,7 +22,7 @@ export default function LatestEntry() {
 
       // Get user context
       const context = await importedSdk.context;
-      if (context?.fid && context?.username) {
+      if (context && typeof context.fid === 'number' && typeof context.username === 'string') {
         // Create/update user in database
         try {
           await fetch('/api/users', {
@@ -31,8 +31,8 @@ export default function LatestEntry() {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              fid: context.fid,
-              username: context.username,
+              fid: Number(context.fid),
+              username: String(context.username),
             }),
           });
         } catch (error) {
