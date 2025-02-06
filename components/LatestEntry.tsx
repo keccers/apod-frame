@@ -1,5 +1,11 @@
 import { useEffect, useCallback, useState } from "react";
-import sdk, { type FrameContext } from "@farcaster/frame-sdk";
+import sdk from "@farcaster/frame-sdk";
+type FrameContext = {
+  user?: {
+    fid?: number;
+    username?: string;
+  };
+};
 
 interface Entry {
   id: string;
