@@ -1,0 +1,22 @@
+Unable to require(`/home/runner/workspace/node_modules/.prisma/client/libquery_engine-debian-openssl-1.1.x.so.node`).
+Prisma cannot find the required `libssl` system library in your system. Please install openssl-1.1.x and try again.
+
+Details: libssl.so.1.1: cannot open shared object file: No such file or directory
+    at Bn.handleRequestError (/home/runner/workspace/node_modules/@prisma/client/runtime/library.js:121:7663)
+    at Bn.handleAndLogRequestError (/home/runner/workspace/node_modules/@prisma/client/runtime/library.js:121:6686)
+    at Bn.request (/home/runner/workspace/node_modules/@prisma/client/runtime/library.js:121:6393)
+    at async l (/home/runner/workspace/node_modules/@prisma/client/runtime/library.js:130:9645)
+    at async handler (webpack-internal:///(api)/./pages/api/users.ts:11:26)
+    at async K (/home/runner/workspace/node_modules/next/dist/compiled/next-server/pages-api.runtime.dev.js:21:2871)
+    at async U.render (/home/runner/workspace/node_modules/next/dist/compiled/next-server/pages-api.runtime.dev.js:21:3955)
+    at async DevServer.runApi (/home/runner/workspace/node_modules/next/dist/server/next-server.js:603:9)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/next/dist/server/next-server.js:269:37)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/next/dist/server/base-server.js:818:17)
+    at async /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:350:24) {
+  clientVersion: '6.3.1',
+  errorCode: undefined
+}

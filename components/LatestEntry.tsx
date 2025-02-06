@@ -19,27 +19,6 @@ export default function LatestEntry() {
     const loadSDK = async () => {
       const importedSdk = (await import("@farcaster/frame-sdk")).default;
       setSdk(importedSdk);
-      
-      // Get user context
-      const context = await importedSdk.context;
-      if (context?.user?.fid && context?.user?.username) {
-        // Create/update user in database
-        try {
-          await fetch('/api/users', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              fid: context.user.fid,
-              username: context.user.username,
-            }),
-          });
-        } catch (error) {
-          console.error('Failed to save user:', error);
-        }
-      }
-      
       importedSdk.actions.ready();
     };
 

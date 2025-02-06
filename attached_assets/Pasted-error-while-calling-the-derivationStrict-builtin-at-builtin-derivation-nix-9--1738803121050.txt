@@ -1,0 +1,54 @@
+error:
+       … while calling the 'derivationStrict' builtin
+
+         at /builtin/derivation.nix:9:12: (source not available)
+
+       … while evaluating derivation 'shell'
+         whose name attribute is located at /nix/store/4va5hjb3sdk8pnpn3dsnkdg65fw28jgv-nixpkgs-23.05-src/pkgs/stdenv/generic/make-derivation.nix:303:7
+
+       … while evaluating attribute 'buildInputs' of derivation 'shell'
+
+         at /nix/store/4va5hjb3sdk8pnpn3dsnkdg65fw28jgv-nixpkgs-23.05-src/pkgs/stdenv/generic/make-derivation.nix:350:7:
+
+          349|       depsHostHost                = lib.elemAt (lib.elemAt dependencies 1) 0;
+          350|       buildInputs                 = lib.elemAt (lib.elemAt dependencies 1) 1;
+             |       ^
+          351|       depsTargetTarget            = lib.elemAt (lib.elemAt dependencies 2) 0;
+
+       error: Package ‘openssl-1.1.1u’ in /nix/store/4va5hjb3sdk8pnpn3dsnkdg65fw28jgv-nixpkgs-23.05-src/pkgs/development/libraries/openssl/default.nix:210 is marked as insecure, refusing to evaluate.
+
+
+       Known issues:
+        - OpenSSL 1.1 is reaching its end of life on 2023/09/11 and cannot be supported through the NixOS 23.05 release cycle. https://www.openssl.org/blog/blog/2023/03/28/1.1.1-EOL/
+
+       You can install it anyway by allowing this package, using the
+       following methods:
+
+       a) To temporarily allow all insecure packages, you can use an environment
+          variable for a single invocation of the nix tools:
+
+            $ export NIXPKGS_ALLOW_INSECURE=1
+
+        Note: For `nix shell`, `nix build`, `nix develop` or any other Nix 2.4+
+        (Flake) command, `--impure` must be passed in order to read this
+        environment variable.
+
+       b) for `nixos-rebuild` you can add ‘openssl-1.1.1u’ to
+          `nixpkgs.config.permittedInsecurePackages` in the configuration.nix,
+          like so:
+
+            {
+              nixpkgs.config.permittedInsecurePackages = [
+                "openssl-1.1.1u"
+              ];
+            }
+
+       c) For `nix-env`, `nix-build`, `nix-shell` or any other Nix command you can add
+          ‘openssl-1.1.1u’ to `permittedInsecurePackages` in
+          ~/.config/nixpkgs/config.nix, like so:
+
+            {
+              permittedInsecurePackages = [
+                "openssl-1.1.1u"
+              ];
+            }
