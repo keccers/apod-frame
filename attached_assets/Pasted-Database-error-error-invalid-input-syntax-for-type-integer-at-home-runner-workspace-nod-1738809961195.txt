@@ -1,0 +1,148 @@
+Database error: error: invalid input syntax for type integer: "{}"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async handler (webpack-internal:///(api)/./pages/api/users.ts:11:28)
+    at async K (/home/runner/workspace/node_modules/next/dist/compiled/next-server/pages-api.runtime.dev.js:21:2871)
+    at async U.render (/home/runner/workspace/node_modules/next/dist/compiled/next-server/pages-api.runtime.dev.js:21:3955)
+    at async DevServer.runApi (/home/runner/workspace/node_modules/next/dist/server/next-server.js:603:9)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/next/dist/server/next-server.js:269:37)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/next/dist/server/base-server.js:818:17)
+    at async /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  length: 145,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'numutils.c',
+  line: '617',
+  routine: 'pg_strtoint32_safe'
+}
+ POST /api/users 500 in 3222ms
+ GET / 200 in 8ms
+[API] GET request to /api/fetchLatest
+ GET /api/fetchLatest 304 in 404ms
+Database error: error: invalid input syntax for type integer: "{}"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async handler (webpack-internal:///(api)/./pages/api/users.ts:11:28)
+    at async K (/home/runner/workspace/node_modules/next/dist/compiled/next-server/pages-api.runtime.dev.js:21:2871)
+    at async U.render (/home/runner/workspace/node_modules/next/dist/compiled/next-server/pages-api.runtime.dev.js:21:3955)
+    at async DevServer.runApi (/home/runner/workspace/node_modules/next/dist/server/next-server.js:603:9)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/next/dist/server/next-server.js:269:37)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/next/dist/server/base-server.js:818:17)
+    at async /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  length: 145,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'numutils.c',
+  line: '617',
+  routine: 'pg_strtoint32_safe'
+}
+ POST /api/users 500 in 1081ms
+ GET / 200 in 12ms
+[API] GET request to /api/fetchLatest
+ GET /api/fetchLatest 304 in 422ms
+Database error: error: invalid input syntax for type integer: "{}"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async handler (webpack-internal:///(api)/./pages/api/users.ts:11:28)
+    at async K (/home/runner/workspace/node_modules/next/dist/compiled/next-server/pages-api.runtime.dev.js:21:2871)
+    at async U.render (/home/runner/workspace/node_modules/next/dist/compiled/next-server/pages-api.runtime.dev.js:21:3955)
+    at async DevServer.runApi (/home/runner/workspace/node_modules/next/dist/server/next-server.js:603:9)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/next/dist/server/next-server.js:269:37)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/next/dist/server/base-server.js:818:17)
+    at async /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  length: 145,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'numutils.c',
+  line: '617',
+  routine: 'pg_strtoint32_safe'
+}
+ POST /api/users 500 in 1173ms
+ GET / 200 in 11ms
+[API] GET request to /api/fetchLatest
+ GET /api/fetchLatest 304 in 359ms
+Database error: error: invalid input syntax for type integer: "{}"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async handler (webpack-internal:///(api)/./pages/api/users.ts:11:28)
+    at async K (/home/runner/workspace/node_modules/next/dist/compiled/next-server/pages-api.runtime.dev.js:21:2871)
+    at async U.render (/home/runner/workspace/node_modules/next/dist/compiled/next-server/pages-api.runtime.dev.js:21:3955)
+    at async DevServer.runApi (/home/runner/workspace/node_modules/next/dist/server/next-server.js:603:9)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/next/dist/server/next-server.js:269:37)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/next/dist/server/base-server.js:818:17)
+    at async /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  length: 145,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'numutils.c',
+  line: '617',
+  routine: 'pg_strtoint32_safe'
+}

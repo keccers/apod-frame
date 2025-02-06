@@ -11,11 +11,13 @@
   "dependencies": {
     "@farcaster/frame-sdk": "^0.0.26",
     "@prisma/client": "^6.3.1",
+    "@types/pg": "^8.11.11",
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
     "fast-xml-parser": "^4.5.1",
     "next": "^14.1.0",
     "openssl-nodejs": "^1.0.5",
+    "pg": "^8.13.1",
     "prisma": "^6.3.1",
     "react": "^18.2.0",
     "react-dom": "18.2.0",
