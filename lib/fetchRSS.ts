@@ -3,7 +3,7 @@ import { XMLParser } from "fast-xml-parser";
 import * as cheerio from "cheerio";
 import pool from "./db";
 
-const FEED_URL = "https://apod.com/feed.rss";
+const FEED_URL = "https://apod.me/en.rss";
 const parser = new XMLParser({ ignoreAttributes: false });
 
 export const fetchAndStoreLatestEntry = async () => {
@@ -25,30 +25,36 @@ export const fetchAndStoreLatestEntry = async () => {
     const videoSrc = $("iframe").attr("src") || "";
     const media = videoSrc ? videoSrc : imgSrc;
 
-    // Remove all links and media tags from the content
-    $("a").remove(); // Remove all links
+    // Remove unnecessary tags while preserving meaningful content
+    $("a").replaceWith((_, el) => $(el).text()); // Replace links with text
     $("img").remove(); // Remove images
     $("iframe").remove(); // Remove iframes
+    $("br").remove(); // Remove all <br> tags
 
-    // Clean content
-    const cleanContent = $.html().replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
+    const cleanedBody = $("body")
+    .html() // Ensure we're calling `.html()` safely
+    ?.toString() // Convert to string explicitly
+    .replace(/\n+/g, " ") // Remove extra newlines
+    .replace(/\s+/g, " ") // Remove excess spaces
+    .replace(/\.(?=\S)/g, ". ") // Ensure proper spacing after periods
+    .trim() || "";
 
-    // Ensure pubDate is a valid timestamp
-    const formattedDate = latestEntry.pubDate
-    ? new Date(latestEntry.pubDate).toISOString()
-    : new Date().toISOString(); // Use the current date if pubDate is missing
 
-
-    if (!formattedDate) {
-      console.error("[RSS] Error: pubDate is missing or invalid:", latestEntry.pubDate);
-      return;
-    }
+    // Format the date
+    const rawDate = latestEntry.pubDate ? new Date(latestEntry.pubDate) : new Date();
+    const formattedDate = rawDate.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 
     console.log("[DEBUG] Extracted Data:", {
       title: latestEntry.title,
       link: latestEntry.link,
       date: formattedDate,
       media,
+      content: cleanedBody,
     });
 
     // Insert into PostgreSQL
@@ -60,8 +66,8 @@ export const fetchAndStoreLatestEntry = async () => {
       [
         latestEntry.title,
         latestEntry.link,
-        cleanContent, // Save cleaned content
-        formattedDate,
+        cleanedBody, // Save cleaned content
+        formattedDate, // Store formatted date
         media,
       ]
     );
