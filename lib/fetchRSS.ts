@@ -21,23 +21,28 @@ export const fetchAndStoreLatestEntry = async () => {
 
     // Extract media
     const $ = cheerio.load(latestEntry["content:encoded"] || "");
-    const imgSrc = $("img").attr("src") || "";
-    const videoSrc = $("iframe").attr("src") || "";
+
+    // Ensure these are Cheerio objects before calling methods
+    const imgSrc = $("img").first().attr("src") || "";
+    const videoSrc = $("iframe").first().attr("src") || "";
     const media = videoSrc ? videoSrc : imgSrc;
 
     // Remove unnecessary tags while preserving meaningful content
-    $("a").replaceWith(function() { return $(this).text(); }); // Replace links with text
-    $("img").remove(); // Remove images
-    $("iframe").remove(); // Remove iframes
-    $("br").remove(); // Remove all <br> tags
+    $("a").each((_, el) => {
+      $(el).replaceWith($(el).text()); // Replace links with plain text
+    });
+    $("img").remove();
+    $("iframe").remove();
+    $("br").remove();
 
-    const cleanedBody = $("body")
-    .html() // Ensure we're calling `.html()` safely
-    ?.toString() // Convert to string explicitly
-    .replace(/\n+/g, " ") // Remove extra newlines
-    .replace(/\s+/g, " ") // Remove excess spaces
-    .replace(/\.(?=\S)/g, ". ") // Ensure proper spacing after periods
-    .trim() || "";
+    // Ensure the body is a Cheerio object before calling `.html()`
+    const cleanedBody = $("<div>").append($("body").contents()) // Ensures proper conversion
+      .html() // Get the HTML content safely
+      ?.replace(/\n+/g, " ") // Remove extra newlines
+      .replace(/\s+/g, " ") // Remove excess spaces
+      .replace(/\.(?=\S)/g, ". ") // Ensure proper spacing after periods
+      .trim() || "";
+
 
 
     // Format the date
