@@ -118,59 +118,54 @@ export default function LatestEntry() {
   };
 
   /**
-   * 🚀 3. Handle Notification Prompt (AFTER SDK is Confirmed)
+   * 🚀 3. Handle Frame Addition (No Notification Saving)
+   */
+  const handleFrameAddition = async () => {
+    if (!sdk || !context?.user?.fid) {
+      console.log("[Debug] ⚠️ Not prompting for frame add (SDK or user context missing).");
+      return;
+    }
+
+    console.log("[Debug] 🔔 Prompting user to add frame...");
+    try {
+      const result = await sdk.actions.addFrame();
+      console.log("[Debug] ✅ addFrame() result:", result);
+
+      if (result.added) {
+        console.log("[Debug] ✅ User added the frame.");
+      } else {
+        console.log("[Debug] ❌ User rejected frame add or it failed:", result.reason);
+      }
+    } catch (error) {
+      console.error("[Debug] ❌ Error prompting for frame add:", error);
+    }
+  };
+
+  /**
+   * 🚀 4. Run Frame Addition Prompt & Update first_time
    */
   useEffect(() => {
-    const handleNotificationPrompt = async () => {
-      if (!sdk || isNewUser !== true || !context?.user?.fid) {
-        console.log("[Debug] ⚠️ Not prompting for notifications. Missing SDK, user context, or already prompted.");
-        return;
-      }
+    const runFrameAdditionPrompt = async () => {
+      if (!sdk || isNewUser !== true) return;
 
-      console.log("[Debug] 🔔 Prompting user for notifications...");
-      try {
-        const result = await sdk.actions.addFrame();
+      console.log("[Debug] 🔔 Handling frame addition prompt...");
+      await handleFrameAddition();
 
-        if (result.added && result.notificationDetails) {
-          console.log("[Debug] ✅ User opted into notifications:", result.notificationDetails);
-
-          // ✅ Save Notification Settings
-          await fetch("/api/users/saveNotifications", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              fid: context.user.fid,
-              notificationUrl: result.notificationDetails.url,
-              notificationToken: result.notificationDetails.token,
-            }),
-          });
-
-          console.log("[Debug] ✅ Notifications enabled and saved.");
-        } else {
-          console.log("[Debug] ❌ User rejected or already added frame:", result.reason);
-        }
-
-        // ✅ Step 4: Update `first_time = false`
-        console.log("[Debug] 🔄 Updating first_time to `false`...");
-        await fetch("/api/users/updateFirstTime", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fid: context.user.fid }),
-        });
-
-        console.log("[Debug] ✅ User first_time updated to false.");
-      } catch (error) {
-        console.error("[Debug] ❌ Error prompting for notifications:", error);
-      }
+      // ✅ Step 4: Update `first_time = false`
+      console.log("[Debug] 🔄 Updating first_time to `false`...");
+      await fetch("/api/users/updateFirstTime", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fid: context?.user?.fid }),
+      });
+      console.log("[Debug] ✅ User first_time updated to false.");
     };
 
-    if (sdk && isNewUser === true) {
-      handleNotificationPrompt();
-    }
+    runFrameAdditionPrompt();
   }, [sdk, isNewUser, context]);
 
   /**
-   * 🚀 4. Fetch the latest RSS entry
+   * 🚀 5. Fetch the latest RSS entry
    */
   useEffect(() => {
     if (sdk) {
