@@ -26,7 +26,7 @@ export const fetchAndStoreLatestEntry = async () => {
     const media = videoSrc ? videoSrc : imgSrc;
 
     // Remove unnecessary tags while preserving meaningful content
-    $("a").replaceWith((_, el) => $(el).text()); // Replace links with text
+    $("a").replaceWith((_, el) => $(el as cheerio.Element).text()); // Replace links with text
     $("img").remove(); // Remove images
     $("iframe").remove(); // Remove iframes
     $("br").remove(); // Remove all <br> tags
