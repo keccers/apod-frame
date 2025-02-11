@@ -1,52 +1,68 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import pool from "../../lib/db";
-import axios from "axios";
+import pool from "@/lib/db";
+import { v4 as uuidv4 } from "uuid";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
-
-  const { fid, message } = req.body;
-  console.log("[API] Sending notification to user:", { fid, message });
-
-  // Validate required parameters
-  if (!fid || !message) {
-    console.error("[API] Missing required fields.");
-    return res.status(400).json({ error: "Missing required fields" });
+    return res.status(405).json({ error: "Method Not Allowed" });
   }
 
   try {
-    const client = await pool.connect();
+    console.log("[Notifications] 🚀 Fetching latest RSS entry...");
+    const rssResult = await pool.query("SELECT * FROM latest_rss ORDER BY date DESC LIMIT 1");
 
-    // Fetch user's notification details from the database
-    const query = `SELECT notification_token, notification_url FROM users WHERE fid = $1`;
-    const result = await client.query(query, [fid]);
-    client.release();
-
-    if (!result.rows.length) {
-      console.error("[API] No user found with that FID.");
-      return res.status(404).json({ error: "User not found" });
+    if (rssResult.rows.length === 0) {
+      console.warn("[Notifications] ❌ No RSS entry found.");
+      return res.status(404).json({ error: "No RSS entry available" });
     }
 
-    const { notification_token, notification_url } = result.rows[0];
+    const latestEntry = rssResult.rows[0];
+    console.log("[Notifications] ✅ Latest RSS Entry:", latestEntry);
 
-    if (!notification_token || !notification_url) {
-      console.error("[API] User has not enabled notifications.");
-      return res.status(400).json({ error: "User has not enabled notifications." });
-    }
-
-    // Send notification request to Farcaster
-    await axios.post(
-      notification_url, // The endpoint provided by Farcaster for this user
-      { message }, // Send the message
-      { headers: { Authorization: `Bearer ${notification_token}` } } // Authenticate with token
+    console.log("[Notifications] 🔍 Fetching opted-in users...");
+    const userResult = await pool.query(
+      "SELECT notification_url, notification_token FROM users WHERE notification_token IS NOT NULL"
     );
 
-    console.log("[API] Notification sent successfully!");
+    if (userResult.rows.length === 0) {
+      console.warn("[Notifications] ❌ No opted-in users found.");
+      return res.status(404).json({ error: "No opted-in users found" });
+    }
+
+    console.log(`[Notifications] ✅ Sending notifications to ${userResult.rows.length} users...`);
+
+    // 🔥 Batch users into groups of 100 (Farcaster's limit)
+    const batchSize = 100;
+    for (let i = 0; i < userResult.rows.length; i += batchSize) {
+      const batch = userResult.rows.slice(i, i + batchSize);
+
+      const tokens = batch.map(user => user.notification_token);
+      const url = batch[0].notification_url; // Assume all users share the same notification URL
+
+      const notificationPayload = {
+        notificationId: uuidv4(), // Unique ID to prevent duplicates
+        title: latestEntry.title.substring(0, 32), // Max 32 characters
+        body: "Click to view the latest Astronomy Picture of the Day!",
+        targetUrl: latestEntry.link,
+        tokens,
+      };
+
+      console.log(`[Notifications] 📤 Sending batch ${i / batchSize + 1}...`, notificationPayload);
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(notificationPayload),
+      });
+
+      const result = await response.json();
+      console.log("[Notifications] ✅ Response:", result);
+    }
+
     return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("[API] Failed to send notification:", error);
-    return res.status(500).json({ error: "Failed to send notification" });
+    console.error("[Notifications] ❌ Error sending notifications:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 }
+
