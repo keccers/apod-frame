@@ -31,6 +31,7 @@ export default function LatestEntry() {
   const [context, setContext] = useState<any>(null);
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isExplanationOpen, setIsExplanationOpen] = useState(false);
 
   /**
    * 🚀 1. Load SDK and User Context
@@ -206,12 +207,28 @@ export default function LatestEntry() {
       <h2 className="rss-title">{entry.title}</h2>
       <p className="rss-date">{entry.date ? formatDate(entry.date) : "Unknown Date"}</p>
 
+      {/* Render video or image */}
       {entry.media?.includes("youtube.com") ? (
         <iframe className="rss-video" src={entry.media} title={entry.title} allowFullScreen></iframe>
       ) : (
         <img src={entry.media} alt={entry.title} className="rss-image" />
       )}
 
+      {/* ✅ Learn More Toggle */}
+      <button className="rss-toggle-button" onClick={() => setIsExplanationOpen(!isExplanationOpen)}>
+        <span className={`rss-toggle-icon ${isExplanationOpen ? "open" : ""}`}>
+          ➤
+        </span>
+        Learn about this photo
+      </button>
+
+      {isExplanationOpen && (
+        <div className="rss-explanation">
+          <div dangerouslySetInnerHTML={{ __html: entry.content }} />
+        </div>
+      )}
+
+      {/* Open Link */}
       <button className="rss-button" onClick={() => sdk?.actions.openUrl(entry.link)}>
         See this photo on apod.nasa.gov
       </button>
