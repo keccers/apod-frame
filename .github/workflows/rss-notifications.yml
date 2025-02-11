@@ -14,6 +14,8 @@ jobs:
   fetch-latest-rss:
     name: Fetch Latest RSS Entry
     runs-on: ubuntu-latest
+    env: 
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -29,7 +31,6 @@ jobs:
 
       - name: Run Fetch Latest RSS Script
         run: yarn fetchLatest
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
 
 
