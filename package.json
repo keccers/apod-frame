@@ -8,7 +8,8 @@
     "start": "next start --port 3000 --hostname 0.0.0.0",
     "lint": "next lint",
     "fetchLatest": "node scripts/fetchLatest.js",
-    "sendNotifications": "node scripts/sendNotifications.js"
+    "sendNotifications": "node scripts/sendNotifications.js",
+    "testNotification": "node scripts/testNotification.js"
   },
   "dependencies": {
     "@farcaster/frame-sdk": "^0.0.26",
@@ -19,6 +20,7 @@
     "fast-xml-parser": "^4.5.1",
     "next": "^14.1.0",
     "node-cron": "^3.0.3",
+    "node-fetch": "2",
     "openssl-nodejs": "^1.0.5",
     "pg": "^8.13.1",
     "prisma": "^6.3.1",
