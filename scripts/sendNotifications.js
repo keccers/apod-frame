@@ -35,6 +35,19 @@ const sendNotifications = async () => {
       usersByUrl[user.notification_url].push(user.notification_token);
     });
 
+    // ✅ Define a set of random notification body messages
+    const notificationBodies = [
+      "The universe has something amazing to show you today...",
+      "Your daily dose of cosmic beauty has landed!",
+      "Your daily window to the universe is ready to explore...",
+      "Discover the universe, one picture at a time.",
+      "The cosmos is calling! Check out today's breathtaking view.",
+      "New day, new astronomical marvels to discover!",
+      "Unravel the mysteries of the cosmos with today's picture! 🔬",
+      "Houston, we have a stunning new space photo! Come see.",
+      "A breathtaking view of space awaits. Click to explore! "
+    ];
+
     const batchSize = 100;
     for (const [url, tokens] of Object.entries(usersByUrl)) {
       console.log(`[Notifications] 📤 Sending notifications to ${tokens.length} users at ${url}...`);
@@ -42,11 +55,18 @@ const sendNotifications = async () => {
       for (let i = 0; i < tokens.length; i += batchSize) {
         const batchTokens = tokens.slice(i, i + batchSize);
 
+        // ✅ Randomly select a notification body
+        const randomBody = notificationBodies[Math.floor(Math.random() * notificationBodies.length)];
+
+        const notificationTitle = latestEntry.title
+          ? latestEntry.title.substring(0, 32) // Ensure it fits within the 32-char limit
+          : "New Astronomy Photo!";
+
         const notificationPayload = {
           notificationId: uuidv4(),
-          title: latestEntry.title ? latestEntry.title.substring(0, 32) : "New Astronomy Photo!",
-          body: "Click to view the latest Astronomy Picture of the Day!",
-          targetUrl: "https://yourwebsite.com",
+          title: notificationTitle,
+          body: randomBody, // ✅ Use a random body message
+          targetUrl: "https://apod-frame.replit.app/", // ✅ Replace with your actual homepage URL
           tokens: batchTokens,
         };
 
