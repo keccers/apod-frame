@@ -3,6 +3,28 @@ const { XMLParser } = require("fast-xml-parser");
 const cheerio = require("cheerio");
 const pool = require("../lib/db"); // Adjust path if needed
 
+console.log("[RSS] 🔍 Starting fetchLatest script...");
+
+(async () => {
+  try {
+    console.log("[RSS] 🚀 Testing DB connection...");
+    const testResult = await pool.query("SELECT NOW()");
+    console.log("[RSS] ✅ DB Connection Successful:", testResult.rows[0]);
+
+    console.log("[RSS] 🔍 Fetching latest RSS entry...");
+    const rssResult = await pool.query("SELECT * FROM latest_rss ORDER BY date DESC LIMIT 1");
+
+    if (rssResult.rows.length === 0) {
+      console.warn("[RSS] ❌ No RSS entry found.");
+      return;
+    }
+
+    console.log("[RSS] ✅ Latest RSS Entry:", rssResult.rows[0]);
+  } catch (error) {
+    console.error("[RSS] ❌ Error fetching latest entry:", error);
+  }
+})();
+
 const FEED_URL = "https://apod.me/en.rss";
 const parser = new XMLParser({ ignoreAttributes: false });
 
