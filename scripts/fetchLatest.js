@@ -1,12 +1,12 @@
-import axios from "axios";
-import { XMLParser } from "fast-xml-parser";
-import * as cheerio from "cheerio";
-import pool from "@/lib/db";
+const axios = require("axios");
+const { XMLParser } = require("fast-xml-parser");
+const cheerio = require("cheerio");
+const pool = require("../lib/db"); // Adjust path if needed
 
 const FEED_URL = "https://apod.me/en.rss";
 const parser = new XMLParser({ ignoreAttributes: false });
 
-export const fetchAndStoreLatestEntry = async () => {
+const fetchAndStoreLatestEntry = async () => {
   try {
     console.log("[RSS] Fetching latest RSS entry...");
 
@@ -22,30 +22,23 @@ export const fetchAndStoreLatestEntry = async () => {
     // Extract media
     const $ = cheerio.load(latestEntry["content:encoded"] || "");
 
-    // Ensure these are Cheerio objects before calling methods
     const imgSrc = $("img").first().attr("src") || "";
     const videoSrc = $("iframe").first().attr("src") || "";
     const media = videoSrc ? videoSrc : imgSrc;
 
-    // Remove unnecessary tags while preserving meaningful content
-    $("a").each((_, el) => {
-      $(el).replaceWith($(el).text()); // Replace links with plain text
-    });
+    $("a").each((_, el) => $(el).replaceWith($(el).text()));
     $("img").remove();
     $("iframe").remove();
     $("br").remove();
 
-    // Ensure the body is a Cheerio object before calling `.html()`
-    const cleanedBody = $("<div>").append($("body").contents()) // Ensures proper conversion
-      .html() // Get the HTML content safely
-      ?.replace(/\n+/g, " ") // Remove extra newlines
-      .replace(/\s+/g, " ") // Remove excess spaces
-      .replace(/\.(?=\S)/g, ". ") // Ensure proper spacing after periods
+    const cleanedBody = $("<div>")
+      .append($("body").contents())
+      .html()
+      ?.replace(/\n+/g, " ")
+      .replace(/\s+/g, " ")
+      .replace(/\.(?=\S)/g, ". ")
       .trim() || "";
 
-
-
-    // Format the date
     const rawDate = latestEntry.pubDate ? new Date(latestEntry.pubDate) : new Date();
     const formattedDate = rawDate.toLocaleDateString("en-US", {
       weekday: "long",
@@ -62,7 +55,6 @@ export const fetchAndStoreLatestEntry = async () => {
       content: cleanedBody,
     });
 
-    // Insert into PostgreSQL
     const result = await pool.query(
       `INSERT INTO latest_rss (title, link, content, date, media)
        VALUES ($1, $2, $3, $4, $5)
@@ -71,8 +63,8 @@ export const fetchAndStoreLatestEntry = async () => {
       [
         latestEntry.title,
         latestEntry.link,
-        cleanedBody, // Save cleaned content
-        formattedDate, // Store formatted date
+        cleanedBody,
+        formattedDate,
         media,
       ]
     );
@@ -86,3 +78,5 @@ export const fetchAndStoreLatestEntry = async () => {
     console.error("[RSS] Error fetching latest entry:", error);
   }
 };
+
+fetchAndStoreLatestEntry();
