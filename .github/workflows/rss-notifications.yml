@@ -1,7 +1,5 @@
 # This is a basic workflow that is manually triggered
 
-name: Fetch latest RSS
-
 name: RSS Fetch & Notifications
 
 on:
