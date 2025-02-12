@@ -63,6 +63,7 @@ body {
   color: #f6f4ef;
   margin-bottom: .25rem;
   margin-top: -2.25rem;
+  letter-spacing: -.05rem;
 }
 
 
@@ -76,9 +77,9 @@ body {
 
 /* Date */
 .rss-date {
-  font-family: "Libre Caslon Display", serif;
+  font-family: "Nunito", serif;
   text-align: center;
-  font-size: .9rem;
+  font-size: .75rem;
   color: #f6f4ef;
   font-weight: normal;
   line-height: .5em;
@@ -104,36 +105,6 @@ body {
   text-decoration: none;
 }
 
-/* ========================================================= */
-/* 🔹 TOGGLE BUTTON (For Explanation) */
-/* ========================================================= */
-.rss-toggle-button {
-  font-family: "IBM Plex Mono", Arial, sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* gap: 0.5rem; */
-  background: none;
-  border: none;
-  font-size: 1rem;
-  cursor: pointer;
-  color: #f6f4ef;
-  padding: 0.5rem 0;
-}
-
-.rss-toggle-button:hover {
-  text-decoration: underline;
-}
-
-/* Toggle Icon Animation */
-.rss-toggle-icon {
-  transition: transform 0.2s ease-in-out;
-  display: inline-block;
-}
-
-.rss-toggle-icon.open {
-  transform: rotate(90deg);
-}
 
 /* ========================================================= */
 /* 🔹 EXPLANATION BOX (Initially Hidden) */
@@ -159,6 +130,7 @@ body {
   color: #ffe500;
   padding: 0.8rem;
   margin-top: 1rem;
+  margin-bottom: 1.5rem;
   border: none;
   border-radius: 5px;
   font-size: 1rem;
