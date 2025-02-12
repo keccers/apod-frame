@@ -1,58 +1,99 @@
-/* Apply basic global styles */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+/* ========================================================= */
+/* 🔹 IMPORT GOOGLE FONT */
+/* ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
 
+/* ========================================================= */
+/* 🔹 GLOBAL STYLES */
+/* ========================================================= */
 body {
-  font-family: "IBM Plex Mono", Arial, sans-serif;
+  font-family: "Nunito", serif;
   background-color: #110044;
   margin: 0;
   padding: 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  min-height: 100vh;
 }
-.rss-container {
-  width: 300px;
-  background: #f6f4ef;
-  padding: 16px;
+
+/* ========================================================= */
+/* 🔹 FULLSCREEN HEADER (PHOTO OR VIDEO) */
+/* ========================================================= */
+.fullscreen-header {
+  display: flex;
+  flex-direction: column; /* Stacks media & content naturally */
+  width: 100%;
+  max-height: 100vh; /* Ensures it does not exceed viewport */
+  background: black; /* Fallback background */
+}
+
+/* 🔹 Ensuring proper aspect ratio for media */
+.fullscreen-media {
+  width: 100%;
+  height: auto; /* Allows height to adjust based on width */
+  max-height: 90vh; /* Ensures it doesn't take the entire viewport */
+  object-fit: cover; /* Fills space while keeping aspect ratio */
+}
+
+/* ========================================================= */
+/* 🔹 CONTENT CONTAINER (Below Header) */
+/* ========================================================= */
+.content-container {
+  width: 90%;
+  max-width: 600px;
+  /* background: #f6f4ef; */
+  padding: 4%;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: left;
+  margin: auto;
+  position: relative;
+  z-index: 2;
 }
 
-.rss-container img {
-  max-width: 100%; /* Ensure the image is responsive */
-  height: auto; /* Maintain aspect ratio */
-  border-radius: 6px; /* Optional: Adds rounded corners */
-  display: block; /* Removes inline spacing issues */
-  margin: 16px auto; /* Centers the image and adds spacing */
-}
+/* ========================================================= */
+/* 🔹 TEXT STYLES */
+/* ========================================================= */
 
-.rss-container h2 {
+/* Header Title */
+.content-container h2 {
+  font-family: "Libre Caslon Display", serif;
   text-align: center;
-  font-size: 20px;
-  color: #110044;
-  margin-bottom: 8px;
+  font-size: 2rem;
+  color: #f6f4ef;
+  margin-bottom: .25rem;
+  margin-top: -2.25rem;
 }
 
-.rss-date {
-  text-align: center;
-}
 
-.rss-container p {
-  font-size: 12px;
+/* Paragraphs */
+.content-container p {
+  font-size: 1rem;
   color: #110044;
-  margin-bottom: 12px;
+  margin-bottom: 1rem;
   line-height: 1.5;
 }
 
+/* Date */
+.rss-date {
+  font-family: "Libre Caslon Display", serif;
+  text-align: center;
+  font-size: .9rem;
+  color: #f6f4ef;
+  font-weight: normal;
+  line-height: .5em;
+  text-transform: uppercase;
+  margin-top: .75rem;
+}
+
+/* Main content */
 .rss-content {
-  font-size: 14px;
+  font-size: 1rem;
   line-height: 1.5;
   color: #444;
 }
 
-/* Prevent unnecessary spacing between inline elements */
+/* Links */
 .rss-content a {
   display: inline;
   color: #007bff;
@@ -63,30 +104,28 @@ body {
   text-decoration: none;
 }
 
-.rss-content * {
-  margin: 0; /* Override default margins */
-  padding: 0;
-}
-/* Toggle Button */
+/* ========================================================= */
+/* 🔹 TOGGLE BUTTON (For Explanation) */
+/* ========================================================= */
 .rss-toggle-button {
   font-family: "IBM Plex Mono", Arial, sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  /* gap: 0.5rem; */
   background: none;
   border: none;
-  font-size: 14px;
+  font-size: 1rem;
   cursor: pointer;
-  color: #301885;
-  padding: 8px 0;
+  color: #f6f4ef;
+  padding: 0.5rem 0;
 }
 
 .rss-toggle-button:hover {
   text-decoration: underline;
 }
 
-/* Toggle Icon */
+/* Toggle Icon Animation */
 .rss-toggle-icon {
   transition: transform 0.2s ease-in-out;
   display: inline-block;
@@ -96,29 +135,33 @@ body {
   transform: rotate(90deg);
 }
 
-/* Explanation Box */
+/* ========================================================= */
+/* 🔹 EXPLANATION BOX (Initially Hidden) */
+/* ========================================================= */
 .rss-explanation {
-  padding: 6px 12px;
+  padding: 3% 5%;
   background-color: #f6f4ef;
   border-radius: 6px;
   text-align: left;
-  font-size: 14px;
+  font-size: 1rem;
   line-height: 1.5;
   color: #110044;
 }
 
-/* Read More Button */
+/* ========================================================= */
+/* 🔹 READ MORE BUTTON */
+/* ========================================================= */
 .rss-button {
-  font-family: "IBM Plex Mono", Arial, sans-serif;
+  font-family: "Nunito", serif;
   display: block;
   width: 100%;
   background-color: #301885;
   color: #ffe500;
-  padding: 10px;
-  margin-top: 12px;
+  padding: 0.8rem;
+  margin-top: 1rem;
   border: none;
   border-radius: 5px;
-  font-size: 14px;
+  font-size: 1rem;
   cursor: pointer;
   transition: background 0.3s;
 }
@@ -132,10 +175,13 @@ body {
   cursor: not-allowed;
 }
 
+/* ========================================================= */
+/* 🔹 RESPONSIVE IFRAME (For Embedded Videos) */
+/* ========================================================= */
 iframe {
   width: 100%;
-  height: auto; 
+  height: auto;
   border-radius: 6px;
   display: block;
-  margin: 12px auto;
+  margin: 1rem auto;
 }
