@@ -162,9 +162,12 @@ export default function LatestEntry() {
         <h4 className="rss-date">{entry.date ? formatDate(entry.date) : "Unknown Date"}</h4>
 
         {/* ✅ Explanation Always Visible */}
-        {console.log("[Debug] entry.content:", entry?.content)}
         <div className="rss-explanation">
-          <div dangerouslySetInnerHTML={{ __html: entry.content }} />
+          {entry.content ? (
+            <div dangerouslySetInnerHTML={{ __html: entry.content }} />
+          ) : (
+            <p>No description available.</p>
+          )}
         </div>
 
         {/* 🔹 Open Link Button */}
