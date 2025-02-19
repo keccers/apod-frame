@@ -10,6 +10,7 @@ interface Entry {
   content: string;
   date: string;
   media: string;
+  share_image?: string; // Added to support stored S3 images
 }
 
 const formatDate = (isoDate: string): string => {
@@ -140,11 +141,14 @@ export default function LatestEntry() {
 
   if (!entry) return <p>Loading...</p>;
 
+  // Check if the post is a YouTube video
+  const isYouTube = entry.media.includes("youtube.com");
+
   return (
     <>
       {/* 🔹 Fullscreen Header (Handles Image or Video) */}
       <div className="fullscreen-header">
-        {entry.media.includes("youtube.com") ? (
+        {isYouTube ? (
           <iframe
             className="fullscreen-media"
             src={entry.media}
@@ -152,7 +156,7 @@ export default function LatestEntry() {
             allowFullScreen
           ></iframe>
         ) : (
-          <img src={entry.media} alt={entry.title} className="fullscreen-media" />
+          <img src={entry.share_image || entry.media} alt={entry.title} className="fullscreen-media" />
         )}
       </div>
 
