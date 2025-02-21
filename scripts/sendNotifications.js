@@ -73,7 +73,7 @@ const sendNotifications = async () => {
 
         const notificationTitle = latestEntry.title
           ? latestEntry.title.substring(0, 32) // Ensure it fits within the 32-char limit
-          : "New Astronomy Photo!";
+          : "There's a new astronomy photo!";
 
         const notificationPayload = {
           notificationId: uuidv4(),
