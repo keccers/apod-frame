@@ -1,3 +1,4 @@
+
 import pool from "../lib/db";
 
 async function migrate() {
