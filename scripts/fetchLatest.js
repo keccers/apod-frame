@@ -13,9 +13,6 @@ console.log("✅ CLOUDFRONT_URL:", process.env.CLOUDFRONT_URL);
 console.log("✅ AWS_ACCESS_KEY_ID Set:", !!process.env.AWS_ACCESS_KEY_ID);
 console.log("✅ AWS_SECRET_ACCESS_KEY Set:", !!process.env.AWS_SECRET_ACCESS_KEY);
 
-const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
-const CLOUDFRONT_URL = process.env.CLOUDFRONT_URL;
-
 const FEED_URL = "https://apod.me/en.rss";
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 const CLOUDFRONT_URL = process.env.CLOUDFRONT_URL;
