@@ -15,6 +15,19 @@ const sendNotifications = async () => {
     const latestEntry = rssResult.rows[0];
     console.log("[Notifications] ✅ Latest RSS Entry:", latestEntry);
 
+    // ✅ Check if the latest entry was published today
+    const today = new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    if (latestEntry.date !== today) {
+      console.log("[Notifications] ❌ No new entry for today. Skipping notifications.");
+      return;
+    }
+
     console.log("[Notifications] 🔍 Fetching opted-in users...");
     const userResult = await pool.query(
       "SELECT notification_url, notification_token FROM users WHERE notification_token IS NOT NULL"
@@ -45,7 +58,7 @@ const sendNotifications = async () => {
       "New day, new astronomical marvels to discover!",
       "Unravel the mysteries of the cosmos with today's picture! 🔬",
       "Houston, we have a stunning new space photo! Come see.",
-      "A breathtaking view of space awaits. Click to explore! "
+      "A breathtaking view of space awaits. Click to explore! ",
     ];
 
     const batchSize = 100;
