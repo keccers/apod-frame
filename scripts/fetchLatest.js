@@ -1,52 +1,134 @@
+const AWS = require("aws-sdk");
 const axios = require("axios");
-const { XMLParser } = require("fast-xml-parser");
 const cheerio = require("cheerio");
-const pool = require("../lib/db"); // Adjust path if needed
+const { XMLParser } = require("fast-xml-parser");
+const { parseStringPromise } = require("xml2js");
+const pool = require("../lib/db"); // Ensure this points to your PostgreSQL connection
 
 const FEED_URL = "https://apod.me/en.rss";
-const parser = new XMLParser({ ignoreAttributes: false });
+const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
+const CLOUDFRONT_URL = process.env.CLOUDFRONT_URL;
 
-const fetchAndStoreLatestEntry = async () => {
+// ✅ Initialize AWS S3
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION || "us-east-1",
+});
+
+// ✅ Fetch RSS Feed
+async function fetchRSSFeed() {
   try {
-    // ✅ Step 1: Fetch the latest stored entry from the database
+    const response = await axios.get(FEED_URL);
+    const parsed = await parseStringPromise(response.data);
+    return parsed.rss.channel[0].item || [];
+  } catch (error) {
+    console.error("❌ Error parsing XML:", error);
+    return [];
+  }
+}
+
+// ✅ Extract Image from RSS Content
+function extractImageFromContent(content) {
+  if (!content) return null;
+  const $ = cheerio.load(content);
+  return $("img").first().attr("src") || null;
+}
+
+// ✅ Extract YouTube Thumbnail from RSS Content
+function extractYouTubeThumbnail(content) {
+  if (!content) return null;
+  const $ = cheerio.load(content);
+  const iframeSrc = $("iframe").first().attr("src");
+  if (iframeSrc && iframeSrc.includes("youtube.com")) {
+    const videoIdMatch = iframeSrc.match(/embed\/([a-zA-Z0-9_-]+)/);
+    return videoIdMatch ? `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg` : null;
+  }
+  return null;
+}
+
+// ✅ Upload Image to S3
+async function uploadImageToS3(imageUrl, filename) {
+  try {
+    console.log(`🔄 Downloading image: ${imageUrl}`);
+    const imageResponse = await axios.get(imageUrl, { responseType: "arraybuffer" });
+
+    const uploadParams = {
+      Bucket: S3_BUCKET_NAME,
+      Key: `rss-images/${filename}`,
+      Body: imageResponse.data,
+      ContentType: "image/jpeg",
+    };
+
+    await s3.upload(uploadParams).promise();
+    return `${CLOUDFRONT_URL}rss-images/${filename}`;
+  } catch (error) {
+    console.error(`❌ Error uploading ${filename} to S3:`, error);
+    return null;
+  }
+}
+
+// ✅ Fetch and Store Latest RSS Entry
+async function fetchAndStoreLatestEntry() {
+  try {
+    console.log("🔍 Checking for latest stored entry in DB...");
     const dbResult = await pool.query(
       "SELECT link FROM latest_rss ORDER BY date DESC LIMIT 1"
     );
 
     const latestStoredEntry = dbResult.rows.length > 0 ? dbResult.rows[0].link : null;
 
-    // ✅ Step 2: Fetch the latest entry from the RSS feed
-    const response = await axios.get(FEED_URL);
-    const feed = parser.parse(response.data);
-    const latestEntry = feed.rss.channel.item[0];
-
-    if (!latestEntry) return;
-
-    // ✅ Step 3: Compare with the most recent stored entry
-    if (latestEntry.link === latestStoredEntry) {
-      console.log("[RSS] No new entry found. Exiting...");
-      return; // Stop execution if it's the same entry
+    console.log("🔍 Fetching RSS feed...");
+    const entries = await fetchRSSFeed();
+    if (!entries.length) {
+      console.log("⚠️ No new entries found in RSS feed.");
+      return;
     }
 
-    // ✅ Step 4: Extract media and clean content
-    const $ = cheerio.load(latestEntry["content:encoded"] || "");
-    const imgSrc = $("img").first().attr("src") || "";
-    const videoSrc = $("iframe").first().attr("src") || "";
-    const media = videoSrc ? videoSrc : imgSrc;
+    const latestEntry = entries[0]; // Get the latest entry from the RSS feed
+    if (!latestEntry) return;
 
+    // ✅ Compare with the most recent stored entry
+    if (latestEntry.link === latestStoredEntry) {
+      console.log("[RSS] No new entry found. Exiting...");
+      return;
+    }
+
+    console.log(`🆕 New entry found: ${latestEntry.title[0]}`);
+
+    // ✅ Extract media (YouTube thumbnail or first image)
+    const content = latestEntry["content:encoded"] ? latestEntry["content:encoded"][0] : "";
+    let imageUrl = extractYouTubeThumbnail(content) || extractImageFromContent(content);
+
+    if (!imageUrl) {
+      console.warn(`⚠️ No valid image found for ${latestEntry.title[0]}`);
+    }
+
+    let s3Url = null;
+    if (imageUrl) {
+      // ✅ Upload image to S3
+      const filename = `${latestEntry.title[0].replace(/\s+/g, "-").toLowerCase()}.jpg`;
+      s3Url = await uploadImageToS3(imageUrl, filename);
+    }
+
+    // ✅ Clean content text
+    const $ = cheerio.load(content);
     $("a").each((_, el) => $(el).replaceWith($(el).text()));
     $("img").remove();
     $("iframe").remove();
     $("br").remove();
 
-    const cleanedBody = $("<div>")
-      .append($("body").contents())
-      .html()
+    let cleanedBody = $("<div>").append($("body").contents()).html();
+    cleanedBody = cleanedBody
       ?.replace(/\n+/g, " ")
       .replace(/\s+/g, " ")
       .replace(/\.(?=\S)/g, ". ")
       .trim() || "";
 
+    // ✅ Add `<b>` tags around "Explanation:"
+    cleanedBody = cleanedBody.replace(/^Explanation:/, "<b>Explanation:</b>");
+
+    // ✅ Format Date
     const rawDate = latestEntry.pubDate ? new Date(latestEntry.pubDate) : new Date();
     const formattedDate = rawDate.toLocaleDateString("en-US", {
       weekday: "long",
@@ -55,24 +137,28 @@ const fetchAndStoreLatestEntry = async () => {
       day: "numeric",
     });
 
-    // ✅ Step 5: Insert only if it's a new entry
+    // ✅ Insert new entry into the database
+    console.log("💾 Saving new entry to database...");
     const insertResult = await pool.query(
-      `INSERT INTO latest_rss (title, link, content, date, media)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO latest_rss (title, link, content, date, media, share_image)
+       VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT (link) DO NOTHING
        RETURNING *`,
-      [latestEntry.title, latestEntry.link, cleanedBody, formattedDate, media]
+      [latestEntry.title[0], latestEntry.link[0], cleanedBody, formattedDate, latestEntry.link[0], s3Url]
     );
 
     if (insertResult.rows.length > 0) {
-      console.log("[RSS] New post detected and saved:", latestEntry.title);
+      console.log(`✅ New post saved: ${latestEntry.title[0]}`);
     } else {
-      console.log("[RSS] No new post detected (duplicate or error).");
+      console.log("⚠️ No new post saved (duplicate or error).");
     }
   } catch (error) {
-    console.error("Error fetching latest RSS entry:", error);
+    console.error("❌ Error fetching latest RSS entry:", error);
   }
-};
+}
 
-// Run the function
-fetchAndStoreLatestEntry();
+// 🚀 Run the script
+fetchAndStoreLatestEntry().then(() => {
+  console.log("✅ Fetch latest entry completed!");
+  process.exit(0);
+});
