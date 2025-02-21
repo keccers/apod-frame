@@ -5,6 +5,17 @@ const { XMLParser } = require("fast-xml-parser");
 const { parseStringPromise } = require("xml2js");
 const pool = require("../lib/db"); // Ensure this points to your PostgreSQL connection
 
+// ✅ Log Environment Variables Before Using
+console.log("🔍 DEBUG: Checking environment variables...");
+console.log("✅ AWS_REGION:", process.env.AWS_REGION);
+console.log("✅ S3_BUCKET_NAME:", process.env.S3_BUCKET_NAME);
+console.log("✅ CLOUDFRONT_URL:", process.env.CLOUDFRONT_URL);
+console.log("✅ AWS_ACCESS_KEY_ID Set:", !!process.env.AWS_ACCESS_KEY_ID);
+console.log("✅ AWS_SECRET_ACCESS_KEY Set:", !!process.env.AWS_SECRET_ACCESS_KEY);
+
+const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
+const CLOUDFRONT_URL = process.env.CLOUDFRONT_URL;
+
 const FEED_URL = "https://apod.me/en.rss";
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 const CLOUDFRONT_URL = process.env.CLOUDFRONT_URL;
