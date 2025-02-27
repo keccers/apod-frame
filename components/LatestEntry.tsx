@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 // Dynamically import the Farcaster SDK
 const sdkPromise = import("@farcaster/frame-sdk").then((mod) => mod.default);
@@ -10,7 +10,8 @@ interface Entry {
   content: string;
   date: string;
   media: string;
-  share_image?: string; // Added to support stored S3 images
+  share_image?: string;
+  share_image_edit?: string | null;
 }
 
 const formatDate = (isoDate: string): string => {
@@ -26,7 +27,7 @@ const formatDate = (isoDate: string): string => {
   });
 };
 
-export default function LatestEntry() {
+export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void }) {
   const [entry, setEntry] = useState<Entry | null>(null);
   const [sdk, setSdk] = useState<any>(null);
   const [context, setContext] = useState<any>(null);
@@ -94,23 +95,24 @@ export default function LatestEntry() {
   };
 
   /**
-   * 🚀 3. Fetch the latest RSS entry
+   * 🚀 3. Fetch the latest RSS entry (Fixed useCallback placement)
    */
-  const fetchEntry = async () => {
+  const fetchEntry = useCallback(async () => {
     try {
       const response = await fetch("/api/fetchLatest");
       if (!response.ok) throw new Error(`API error: ${response.status}`);
 
       const data: Entry = await response.json();
       setEntry(data);
+      onLoad(data); // ✅ Pass entry up for dynamic metadata updates
     } catch (error) {
       setErrorMessage("Failed to load content.");
     }
-  };
+  }, [onLoad]); // ✅ Depend on `onLoad` (not `entry` or `sdk`)
 
   useEffect(() => {
     if (sdk) fetchEntry();
-  }, [sdk]);
+  }, [sdk, fetchEntry]); // ✅ Now properly tracks `fetchEntry`
 
   /**
    * 🚀 4. Handle Frame Addition (No Notification Saving)
@@ -141,7 +143,13 @@ export default function LatestEntry() {
 
   if (!entry) return <p>Loading...</p>;
 
-  // Check if the post is a YouTube video
+  // ✅ Ensure Farcaster metadata uses `share_image_edit`
+  const metaImageUrl = entry.share_image_edit || entry.share_image || entry.media;
+
+  // ✅ Ensure the full post body uses `share_image` (NOT `share_image_edit`)
+  const postImageUrl = entry.share_image || entry.media;
+
+  // ✅ Check if the post is a YouTube video
   const isYouTube = entry.media.includes("youtube.com");
 
   return (
@@ -156,7 +164,7 @@ export default function LatestEntry() {
             allowFullScreen
           ></iframe>
         ) : (
-          <img src={entry.share_image || entry.media} alt={entry.title} className="fullscreen-media" />
+          <img src={postImageUrl} alt={entry.title} className="fullscreen-media" />
         )}
       </div>
 
