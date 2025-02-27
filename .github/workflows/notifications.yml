@@ -19,11 +19,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20.12.2
           cache: "yarn"
 
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
 
       - name: Run Send Notifications Script
-        run: yarn sendNotifications
+        run: yarn testNotifications
