@@ -157,3 +157,57 @@ iframe {
   display: block;
   margin: 1rem auto;
 }
+/* ========================================================= */
+/* SHARE PAGE  */
+/* ========================================================= */
+/* Container */
+.share-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: black;
+}
+
+/* Wrapper for the image and title */
+.share-image-wrapper {
+  position: relative;
+  width: 1200px;
+  height: 800px;
+}
+
+/* Background Image */
+.share-background-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Overlay Title */
+.share-overlay {
+  position: absolute;
+  top: 40%;
+  width: 1200px;
+  max-width:1200px;
+  /* background-color: rgba(0, 0, 0, 0.6); */
+  padding: 20px;
+  text-align: center;
+}
+
+/* Title Text */
+.share-title {
+  color: white;
+  font-size: 60px;
+  font-weight: bold;
+  font-family: "Libre Caslon Display", serif;
+  margin: 0;
+  filter: drop-shadow(5px 5px 20px #000000);
+}
+
+/* No Image Available Message */
+.share-no-image {
+  color: white;
+  font-size: 24px;
+}
