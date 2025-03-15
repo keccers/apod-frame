@@ -17,6 +17,24 @@ body {
 }
 
 /* ========================================================= */
+/* 🔹 LOADER */
+/* ========================================================= */
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Center vertically */
+}
+
+.loading-animation {
+  width: 100px;
+  height: 100px;
+}
+
+
+/* 
+========================================================= */
 /* 🔹 FULLSCREEN HEADER (PHOTO OR VIDEO) */
 /* ========================================================= */
 .fullscreen-header {
