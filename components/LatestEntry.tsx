@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 // Dynamically import the Farcaster SDK
 const sdkPromise = import("@farcaster/frame-sdk").then((mod) => mod.default);
@@ -13,6 +13,8 @@ interface Entry {
   share_image?: string;
   share_image_edit?: string | null;
 }
+
+const CACHE_KEY = "latestEntryCache"; // ✅ Session cache key
 
 const formatDate = (isoDate: string): string => {
   if (!isoDate) return "Unknown Date";
@@ -34,9 +36,6 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  /**
-   * 🚀 1. Load SDK and User Context
-   */
   useEffect(() => {
     const loadSDK = async () => {
       try {
@@ -59,9 +58,6 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
     loadSDK();
   }, []);
 
-  /**
-   * 🚀 2. Check user in DB & Update first_time
-   */
   const checkAndSaveUser = async (fid: number, username: string) => {
     try {
       const response = await fetch("/api/users/check", {
@@ -94,29 +90,40 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
     }
   };
 
-  /**
-   * 🚀 3. Fetch the latest RSS entry (Fixed useCallback placement)
-   */
-  const fetchEntry = useCallback(async () => {
-    try {
-      const response = await fetch("/api/fetchLatest");
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+  useEffect(() => {
+    const fetchEntry = async () => {
+      try {
+        const cachedEntry = sessionStorage.getItem(CACHE_KEY);
+        if (cachedEntry) {
+          console.log("🟡 Using cached latest entry...");
+          setEntry(JSON.parse(cachedEntry));
+          onLoad(JSON.parse(cachedEntry));
+        }
 
-      const data: Entry = await response.json();
-      setEntry(data);
-      onLoad(data); // ✅ Pass entry up for dynamic metadata updates
-    } catch (error) {
-      setErrorMessage("Failed to load content.");
-    }
-  }, [onLoad]); // ✅ Depend on `onLoad` (not `entry` or `sdk`)
+        console.log("🔄 Fetching latest entry from API...");
+        const response = await fetch("/api/fetchLatest");
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+        const freshEntry: Entry = await response.json();
+        console.log("✅ Latest entry received:", freshEntry.title);
+
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(freshEntry));
+        setEntry(freshEntry);
+        onLoad(freshEntry);
+      } catch (error) {
+        setErrorMessage("Failed to load content.");
+      }
+    };
+
+    fetchEntry();
+  }, [onLoad]);
 
   useEffect(() => {
-    if (sdk) fetchEntry();
-  }, [sdk, fetchEntry]); // ✅ Now properly tracks `fetchEntry`
+    if (sdk && isNewUser === true) {
+      handleFrameAddition();
+    }
+  }, [sdk, isNewUser]);
 
-  /**
-   * 🚀 4. Handle Frame Addition (No Notification Saving)
-   */
   const handleFrameAddition = async () => {
     if (!sdk || !context?.user?.fid) return;
 
@@ -127,12 +134,6 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
     }
   };
 
-  useEffect(() => {
-    if (sdk && isNewUser === true) {
-      handleFrameAddition();
-    }
-  }, [sdk, isNewUser]);
-
   if (errorMessage) {
     return (
       <div className="error-container">
@@ -141,22 +142,56 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
     );
   }
 
-  if (!entry) return <p>Loading...</p>;
-
-  // ✅ Ensure Farcaster metadata uses `share_image_edit`
-  const metaImageUrl = entry.share_image_edit || entry.share_image || entry.media;
-
-  // ✅ Ensure the full post body uses `share_image` (NOT `share_image_edit`)
-  const postImageUrl = entry.share_image || entry.media;
-
-  // ✅ Check if the post is a YouTube video
-  const isYouTube = entry.media.includes("youtube.com");
+  if (!entry) {
+    return (
+      <div className="loading-container">
+        <svg
+          className="loading-animation"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 200 200"
+        >
+          <circle fill="#FFE500" stroke="#FFE500" strokeWidth="15" r="15" cx="40" cy="100">
+            <animate
+              attributeName="opacity"
+              calcMode="spline"
+              dur="2s"
+              values="1;0;1"
+              keySplines=".5 0 .5 1;.5 0 .5 1"
+              repeatCount="indefinite"
+              begin="-0.4s"
+            />
+          </circle>
+          <circle fill="#FFE500" stroke="#FFE500" strokeWidth="15" r="15" cx="100" cy="100">
+            <animate
+              attributeName="opacity"
+              calcMode="spline"
+              dur="2s"
+              values="1;0;1"
+              keySplines=".5 0 .5 1;.5 0 .5 1"
+              repeatCount="indefinite"
+              begin="-0.2s"
+            />
+          </circle>
+          <circle fill="#FFE500" stroke="#FFE500" strokeWidth="15" r="15" cx="160" cy="100">
+            <animate
+              attributeName="opacity"
+              calcMode="spline"
+              dur="2s"
+              values="1;0;1"
+              keySplines=".5 0 .5 1;.5 0 .5 1"
+              repeatCount="indefinite"
+              begin="0s"
+            />
+          </circle>
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <>
-      {/* 🔹 Fullscreen Header (Handles Image or Video) */}
       <div className="fullscreen-header">
-        {isYouTube ? (
+        {entry.media.includes("youtube.com") ? (
           <iframe
             className="fullscreen-media"
             src={entry.media}
@@ -164,16 +199,14 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
             allowFullScreen
           ></iframe>
         ) : (
-          <img src={postImageUrl} alt={entry.title} className="fullscreen-media" />
+          <img src={entry.share_image || entry.media} alt={entry.title} className="fullscreen-media" />
         )}
       </div>
 
-      {/* 🔹 Content Section (Below Header) */}
       <div className="content-container">
         <h2 className="rss-title">{entry.title}</h2>
         <h4 className="rss-date">{entry.date ? formatDate(entry.date) : "Unknown Date"}</h4>
 
-        {/* ✅ Explanation Always Visible */}
         <div className="rss-explanation">
           {entry.content ? (
             <div dangerouslySetInnerHTML={{ __html: entry.content }} />
@@ -181,13 +214,6 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
             <p>No description available.</p>
           )}
         </div>
-
-        {/* 🔹 Open Link Button */}
-        {sdk && (
-          <button className="rss-button" onClick={() => sdk.actions.openUrl(entry.link)}>
-            See this photo on apod.nasa.gov
-          </button>
-        )}
       </div>
     </>
   );
