@@ -10,7 +10,7 @@ channel = "stable-23_05"
 NEXT_TELEMETRY_DISABLED = "1"
 
 [deployment]
-build = ["npm", "run", "build"]
+build = ["sh", "-c", "npm run build"]
 run = ["sh", "-c", "npm run start"]
 deploymentTarget = "cloudrun"
 
