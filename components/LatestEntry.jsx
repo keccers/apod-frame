@@ -26,6 +26,20 @@ export default function LatestEntry({ onLoad }) {
   const [errorMessage, setErrorMessage] = useState(null);
 
   /**
+   * ✅ Handle Farcaster Frame Addition for New Users
+   */
+  const handleFrameAddition = async () => {
+    if (!sdk || !context?.user?.fid) return;
+
+    try {
+      await sdk.actions.addFrame();
+      console.log("✅ Frame added for new user.");
+    } catch (error) {
+      console.error("❌ Error prompting for frame add:", error);
+    }
+  };
+
+  /**
    * ✅ Load Farcaster SDK and Context
    */
   useEffect(() => {
@@ -92,7 +106,6 @@ export default function LatestEntry({ onLoad }) {
         const cachedEntry = sessionStorage.getItem(CACHE_KEY);
         const parsedCache = cachedEntry ? JSON.parse(cachedEntry) : null;
 
-        // Fetch fresh entry from API
         console.log("🔄 Fetching latest entry from API...");
         const response = await fetch("/api/fetchLatest");
         if (!response.ok) throw new Error(`API error: ${response.status}`);
@@ -100,7 +113,6 @@ export default function LatestEntry({ onLoad }) {
         const freshEntry = await response.json();
         console.log("✅ Latest entry received:", freshEntry.title);
 
-        // If fresh entry is different from cached, update
         if (!parsedCache || parsedCache.id !== freshEntry.id) {
           sessionStorage.setItem(CACHE_KEY, JSON.stringify(freshEntry));
           setEntry(freshEntry);
@@ -120,23 +132,13 @@ export default function LatestEntry({ onLoad }) {
   }, [onLoad]);
 
   /**
-   * ✅ Handle Farcaster Frame Addition for New Users
+   * ✅ Trigger Frame Addition for New Users
    */
   useEffect(() => {
     if (sdk && isNewUser === true) {
       handleFrameAddition();
     }
-  }, [sdk, isNewUser, handleFrameAddition]);
-
-  const handleFrameAddition = async () => {
-    if (!sdk || !context?.user?.fid) return;
-
-    try {
-      await sdk.actions.addFrame();
-    } catch (error) {
-      console.error("Error prompting for frame add:", error);
-    }
-  };
+  }, [sdk, isNewUser]);
 
   /**
    * ✅ Loading/Error States
