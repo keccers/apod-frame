@@ -1,24 +1,23 @@
-"use client";
-
-import { useState } from "react";
-import Head from "next/head";
 import dynamic from "next/dynamic";
-import { generateFrameMetadata, Entry } from "@/lib/frameMetadata";
+import FrameMetadata from "../components/FrameMetadata";
+import { generateFrameMetadata, Entry } from "../lib/frameMetadata";
+import { useState } from "react";
 
 const LatestEntry = dynamic(() => import("../components/LatestEntry"), {
   ssr: false,
 });
 
 const BASE_URL = "https://apod-frame.replit.app";
-const DEFAULT_IMAGE = `${BASE_URL}/apod-image.png`;
 
-// ✅ Prefetch latest entry at build time (Ensures metadata is stable)
 export async function getServerSideProps() {
   try {
     console.log("🔄 Fetching latest entry from API (SSR)...");
 
     const response = await fetch(`${BASE_URL}/api/fetchLatest`);
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API error: ${response.status} - ${errorText}`);
+    }
 
     const latestEntry: Entry = await response.json();
     console.log("✅ Latest entry received (SSR):", latestEntry.title);
@@ -40,13 +39,11 @@ export default function Home({ latestEntry, frameMetadata }: { latestEntry: Entr
 
   return (
     <>
-      <Head>
-        {/* ✅ Embed Frame Metadata (STABLE & PRESENT IN FIRST HTML RESPONSE) */}
-        <meta name="fc:frame" content={frameMetadata} />
-      </Head>
+      <FrameMetadata frameMetadata={frameMetadata} />
 
       <main className="min-h-screen flex flex-col p-4">
         <LatestEntry
+          initialEntry={entry}
           onLoad={(newEntry) => {
             if (newEntry?.id !== entry?.id) {
               setEntry(newEntry);

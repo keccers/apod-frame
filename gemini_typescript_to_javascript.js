@@ -14,49 +14,51 @@ if (!apiKey) {
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro-latest' });
 
-const MAX_REQUESTS_PER_MINUTE = 40; // Reduced further for safety
+const MAX_REQUESTS_PER_MINUTE = 25; // Reduced further for safety
 const DELAY_MS = 60000 / MAX_REQUESTS_PER_MINUTE; // Delay between requests in milliseconds
-const INITIAL_DELAY = 5000; // 5 seconds initial delay
+const INITIAL_DELAY = 15000; // Increased initial delay to 15 seconds
+const RETRY_DELAY = 60000; // delay of 60 seconds
 
 let requestQueue = []; // Queue to hold requests
 let isProcessing = false; // Flag to prevent multiple processQueue instances
 
 async function processQueue() {
-    if (isProcessing) return; // Prevent multiple instances
-    isProcessing = true;
+  if (isProcessing) return;
+  isProcessing = true;
 
-    while (requestQueue.length > 0) {
-        const nextRequest = requestQueue.shift();
+  while (requestQueue.length > 0) {
+    const nextRequest = requestQueue.shift();
 
-        try {
-            await nextRequest(); // Execute the request
-        } catch (error) {
-            console.error("Error processing request:", error);
-        }
-
-        // Wait before processing the next request
-        await new Promise(resolve => setTimeout(resolve, DELAY_MS));
+    try {
+      await nextRequest();
+    } catch (error) {
+      console.error("Error processing request:", error);
+      // If there's an error, requeue the request after a delay
+      console.log(`Re-queueing request after ${RETRY_DELAY}ms delay...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      requestQueue.unshift(nextRequest); // Add back to the front
     }
+  }
 
-    isProcessing = false; // Allow processing to start again
+  isProcessing = false;
 }
 
 async function rateLimit(fn) {
-    return new Promise((resolve, reject) => {
-        requestQueue.push(async () => {
-            try {
-                const result = await fn();
-                resolve(result);
-            } catch (error) {
-                reject(error);
-            }
-        });
-
-        // Start the queue processing if not already running
-        if (!isProcessing) {
-            setTimeout(processQueue, INITIAL_DELAY); // Initial delay
-        }
+  return new Promise((resolve, reject) => {
+    requestQueue.push(async () => {
+      try {
+        const result = await fn();
+        resolve(result);
+      } catch (error) {
+        reject(error);
+        console.error(`Rejecting because of ${error}`);
+      }
     });
+
+    if (!isProcessing) {
+      setTimeout(processQueue, INITIAL_DELAY); // Initial delay
+    }
+  });
 }
 
 async function convertTypescriptToJavascript(filepath) {

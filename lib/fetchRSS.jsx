@@ -22,28 +22,25 @@ export const fetchAndStoreLatestEntry = async () => {
     // Extract media
     const $ = cheerio.load(latestEntry["content:encoded"] || "");
 
-    // Ensure these are Cheerio objects before calling methods
     const imgSrc = $("img").first().attr("src") || "";
     const videoSrc = $("iframe").first().attr("src") || "";
     const media = videoSrc ? videoSrc : imgSrc;
 
     // Remove unnecessary tags while preserving meaningful content
     $("a").each((_, el) => {
-      $(el).replaceWith($(el).text()); // Replace links with plain text
+      $(el).replaceWith($(el).text()); 
     });
     $("img").remove();
     $("iframe").remove();
     $("br").remove();
 
-    // Ensure the body is a Cheerio object before calling `.html()`
-    const cleanedBody = $("<div>").append($("body").contents()) // Ensures proper conversion
-      .html() // Get the HTML content safely
-      ?.replace(/\n+/g, " ") // Remove extra newlines
-      .replace(/\s+/g, " ") // Remove excess spaces
-      .replace(/\.(?=\S)/g, ". ") // Ensure proper spacing after periods
+
+    const cleanedBody = $("<div>").append($("body").contents())
+      .html()
+      ?.replace(/\n+/g, " ") 
+      .replace(/\s+/g, " ") 
+      .replace(/\.(?=\S)/g, ". ")
       .trim() || "";
-
-
 
     // Format the date
     const rawDate = latestEntry.pubDate ? new Date(latestEntry.pubDate) : new Date();
@@ -71,8 +68,8 @@ export const fetchAndStoreLatestEntry = async () => {
       [
         latestEntry.title,
         latestEntry.link,
-        cleanedBody, // Save cleaned content
-        formattedDate, // Store formatted date
+        cleanedBody,
+        formattedDate,
         media,
       ]
     );

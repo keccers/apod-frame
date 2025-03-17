@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import pool from "../../lib/db";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
       console.log("[API] Fetching latest RSS entry from database...");

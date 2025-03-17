@@ -3,20 +3,9 @@ import { useEffect, useState } from "react";
 // Dynamically import the Farcaster SDK
 const sdkPromise = import("@farcaster/frame-sdk").then((mod) => mod.default);
 
-interface Entry {
-  id: string;
-  title: string;
-  link: string;
-  content: string;
-  date: string;
-  media: string;
-  share_image?: string;
-  share_image_edit?: string | null;
-}
-
 const CACHE_KEY = "latestEntryCache"; // ✅ Session cache key
 
-const formatDate = (isoDate: string): string => {
+const formatDate = (isoDate) => {
   if (!isoDate) return "Unknown Date";
 
   const date = new Date(isoDate);
@@ -29,13 +18,16 @@ const formatDate = (isoDate: string): string => {
   });
 };
 
-export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void }) {
-  const [entry, setEntry] = useState<Entry | null>(null);
-  const [sdk, setSdk] = useState<any>(null);
-  const [context, setContext] = useState<any>(null);
-  const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+export default function LatestEntry({ onLoad }) {
+  const [entry, setEntry] = useState(null);
+  const [sdk, setSdk] = useState(null);
+  const [context, setContext] = useState(null);
+  const [isNewUser, setIsNewUser] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
+  /**
+   * ✅ Load Farcaster SDK and Context
+   */
   useEffect(() => {
     const loadSDK = async () => {
       try {
@@ -58,7 +50,10 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
     loadSDK();
   }, []);
 
-  const checkAndSaveUser = async (fid: number, username: string) => {
+  /**
+   * ✅ Check if User is New and Update DB
+   */
+  const checkAndSaveUser = async (fid, username) => {
     try {
       const response = await fetch("/api/users/check", {
         method: "POST",
@@ -75,42 +70,48 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
           body: JSON.stringify({ fid }),
         });
         setIsNewUser(false);
-        return;
+      } else {
+        await fetch("/api/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fid, username }),
+        });
+        setIsNewUser(true);
       }
-
-      await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fid, username }),
-      });
-
-      setIsNewUser(true);
     } catch (error) {
       console.error("Error checking/saving user:", error);
     }
   };
 
+  /**
+   * ✅ Fetch Latest Entry with Caching
+   */
   useEffect(() => {
     const fetchEntry = async () => {
       try {
         const cachedEntry = sessionStorage.getItem(CACHE_KEY);
-        if (cachedEntry) {
-          console.log("🟡 Using cached latest entry...");
-          setEntry(JSON.parse(cachedEntry));
-          onLoad(JSON.parse(cachedEntry));
-        }
+        const parsedCache = cachedEntry ? JSON.parse(cachedEntry) : null;
 
+        // Fetch fresh entry from API
         console.log("🔄 Fetching latest entry from API...");
         const response = await fetch("/api/fetchLatest");
         if (!response.ok) throw new Error(`API error: ${response.status}`);
 
-        const freshEntry: Entry = await response.json();
+        const freshEntry = await response.json();
         console.log("✅ Latest entry received:", freshEntry.title);
 
-        sessionStorage.setItem(CACHE_KEY, JSON.stringify(freshEntry));
-        setEntry(freshEntry);
-        onLoad(freshEntry);
+        // If fresh entry is different from cached, update
+        if (!parsedCache || parsedCache.id !== freshEntry.id) {
+          sessionStorage.setItem(CACHE_KEY, JSON.stringify(freshEntry));
+          setEntry(freshEntry);
+          onLoad(freshEntry);
+        } else {
+          console.log("🟡 Using cached latest entry...");
+          setEntry(parsedCache);
+          onLoad(parsedCache);
+        }
       } catch (error) {
+        console.error("❌ Error fetching latest entry:", error);
         setErrorMessage("Failed to load content.");
       }
     };
@@ -118,6 +119,9 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
     fetchEntry();
   }, [onLoad]);
 
+  /**
+   * ✅ Handle Farcaster Frame Addition for New Users
+   */
   useEffect(() => {
     if (sdk && isNewUser === true) {
       handleFrameAddition();
@@ -134,6 +138,9 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
     }
   };
 
+  /**
+   * ✅ Loading/Error States
+   */
   if (errorMessage) {
     return (
       <div className="error-container">
@@ -151,37 +158,13 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
           viewBox="0 0 200 200"
         >
           <circle fill="#FFE500" stroke="#FFE500" strokeWidth="15" r="15" cx="40" cy="100">
-            <animate
-              attributeName="opacity"
-              calcMode="spline"
-              dur="2s"
-              values="1;0;1"
-              keySplines=".5 0 .5 1;.5 0 .5 1"
-              repeatCount="indefinite"
-              begin="-0.4s"
-            />
+            <animate attributeName="opacity" calcMode="spline" dur="2s" values="1;0;1" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-0.4s" />
           </circle>
           <circle fill="#FFE500" stroke="#FFE500" strokeWidth="15" r="15" cx="100" cy="100">
-            <animate
-              attributeName="opacity"
-              calcMode="spline"
-              dur="2s"
-              values="1;0;1"
-              keySplines=".5 0 .5 1;.5 0 .5 1"
-              repeatCount="indefinite"
-              begin="-0.2s"
-            />
+            <animate attributeName="opacity" calcMode="spline" dur="2s" values="1;0;1" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-0.2s" />
           </circle>
           <circle fill="#FFE500" stroke="#FFE500" strokeWidth="15" r="15" cx="160" cy="100">
-            <animate
-              attributeName="opacity"
-              calcMode="spline"
-              dur="2s"
-              values="1;0;1"
-              keySplines=".5 0 .5 1;.5 0 .5 1"
-              repeatCount="indefinite"
-              begin="0s"
-            />
+            <animate attributeName="opacity" calcMode="spline" dur="2s" values="1;0;1" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0s" />
           </circle>
         </svg>
       </div>
