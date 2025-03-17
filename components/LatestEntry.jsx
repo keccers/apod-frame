@@ -126,7 +126,7 @@ export default function LatestEntry({ onLoad }) {
     if (sdk && isNewUser === true) {
       handleFrameAddition();
     }
-  }, [sdk, isNewUser]);
+  }, [sdk, isNewUser, handleFrameAddition]);
 
   const handleFrameAddition = async () => {
     if (!sdk || !context?.user?.fid) return;

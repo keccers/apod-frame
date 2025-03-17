@@ -1,4 +1,3 @@
-```javascript
 import { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
 
@@ -39,4 +38,3 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "Internal server error" });
   }
 }
-```
