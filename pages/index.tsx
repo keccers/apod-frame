@@ -1,7 +1,17 @@
 import dynamic from "next/dynamic";
 import FrameMetadata from "../components/FrameMetadata";
-import { generateFrameMetadata, Entry } from "../lib/frameMetadata";
+import { generateFrameMetadata } from "../lib/frameMetadata";
 import { useState } from "react";
+
+interface Entry {
+  id?: string;
+  title: string;
+  date?: string;
+  content?: string;
+  media?: string;
+  share_image?: string;
+  share_image_edit?: string | null;
+}
 
 const LatestEntry = dynamic(() => import("../components/LatestEntry"), {
   ssr: false,

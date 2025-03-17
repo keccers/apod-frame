@@ -25,6 +25,16 @@ export default function LatestEntry({ onLoad }) {
   const [isNewUser, setIsNewUser] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const handleFrameAddition = async () => {
+    if (!sdk || !context?.user?.fid) return;
+    try {
+      await sdk.actions.addFrame();
+      console.log("✅ Frame added for new user.");
+    } catch (error) {
+      console.error("❌ Error prompting for frame add:", error);
+    }
+  };
+
   /**
    * ✅ Handle Farcaster Frame Addition for New Users
    */
