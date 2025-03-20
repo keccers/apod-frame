@@ -3,9 +3,20 @@ import { useEffect, useState } from "react";
 // Dynamically import the Farcaster SDK
 const sdkPromise = import("@farcaster/frame-sdk").then((mod) => mod.default);
 
+interface Entry {
+  id: string;
+  title: string;
+  link: string;
+  content: string;
+  date: string;
+  media: string;
+  share_image?: string;
+  share_image_edit?: string | null;
+}
+
 const CACHE_KEY = "latestEntryCache"; // ✅ Session cache key
 
-const formatDate = (isoDate) => {
+const formatDate = (isoDate: string): string => {
   if (!isoDate) return "Unknown Date";
 
   const date = new Date(isoDate);
@@ -18,40 +29,13 @@ const formatDate = (isoDate) => {
   });
 };
 
-export default function LatestEntry({ onLoad }) {
-  const [entry, setEntry] = useState(null);
-  const [sdk, setSdk] = useState(null);
-  const [context, setContext] = useState(null);
-  const [isNewUser, setIsNewUser] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
+export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void }) {
+  const [entry, setEntry] = useState<Entry | null>(null);
+  const [sdk, setSdk] = useState<any>(null);
+  const [context, setContext] = useState<any>(null);
+  const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleFrameAddition = async () => {
-    if (!sdk || !context?.user?.fid) return;
-    try {
-      await sdk.actions.addFrame();
-      console.log("✅ Frame added for new user.");
-    } catch (error) {
-      console.error("❌ Error prompting for frame add:", error);
-    }
-  };
-
-  /**
-   * ✅ Handle Farcaster Frame Addition for New Users
-   */
-  const handleFrameAddition = async () => {
-    if (!sdk || !context?.user?.fid) return;
-
-    try {
-      await sdk.actions.addFrame();
-      console.log("✅ Frame added for new user.");
-    } catch (error) {
-      console.error("❌ Error prompting for frame add:", error);
-    }
-  };
-
-  /**
-   * ✅ Load Farcaster SDK and Context
-   */
   useEffect(() => {
     const loadSDK = async () => {
       try {
@@ -74,10 +58,7 @@ export default function LatestEntry({ onLoad }) {
     loadSDK();
   }, []);
 
-  /**
-   * ✅ Check if User is New and Update DB
-   */
-  const checkAndSaveUser = async (fid, username) => {
+  const checkAndSaveUser = async (fid: number, username: string) => {
     try {
       const response = await fetch("/api/users/check", {
         method: "POST",
@@ -94,46 +75,42 @@ export default function LatestEntry({ onLoad }) {
           body: JSON.stringify({ fid }),
         });
         setIsNewUser(false);
-      } else {
-        await fetch("/api/users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fid, username }),
-        });
-        setIsNewUser(true);
+        return;
       }
+
+      await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fid, username }),
+      });
+
+      setIsNewUser(true);
     } catch (error) {
       console.error("Error checking/saving user:", error);
     }
   };
 
-  /**
-   * ✅ Fetch Latest Entry with Caching
-   */
   useEffect(() => {
     const fetchEntry = async () => {
       try {
         const cachedEntry = sessionStorage.getItem(CACHE_KEY);
-        const parsedCache = cachedEntry ? JSON.parse(cachedEntry) : null;
+        if (cachedEntry) {
+          console.log("🟡 Using cached latest entry...");
+          setEntry(JSON.parse(cachedEntry));
+          onLoad(JSON.parse(cachedEntry));
+        }
 
         console.log("🔄 Fetching latest entry from API...");
         const response = await fetch("/api/fetchLatest");
         if (!response.ok) throw new Error(`API error: ${response.status}`);
 
-        const freshEntry = await response.json();
+        const freshEntry: Entry = await response.json();
         console.log("✅ Latest entry received:", freshEntry.title);
 
-        if (!parsedCache || parsedCache.id !== freshEntry.id) {
-          sessionStorage.setItem(CACHE_KEY, JSON.stringify(freshEntry));
-          setEntry(freshEntry);
-          onLoad(freshEntry);
-        } else {
-          console.log("🟡 Using cached latest entry...");
-          setEntry(parsedCache);
-          onLoad(parsedCache);
-        }
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(freshEntry));
+        setEntry(freshEntry);
+        onLoad(freshEntry);
       } catch (error) {
-        console.error("❌ Error fetching latest entry:", error);
         setErrorMessage("Failed to load content.");
       }
     };
@@ -141,18 +118,22 @@ export default function LatestEntry({ onLoad }) {
     fetchEntry();
   }, [onLoad]);
 
-  /**
-   * ✅ Trigger Frame Addition for New Users
-   */
   useEffect(() => {
     if (sdk && isNewUser === true) {
       handleFrameAddition();
     }
   }, [sdk, isNewUser]);
 
-  /**
-   * ✅ Loading/Error States
-   */
+  const handleFrameAddition = async () => {
+    if (!sdk || !context?.user?.fid) return;
+
+    try {
+      await sdk.actions.addFrame();
+    } catch (error) {
+      console.error("Error prompting for frame add:", error);
+    }
+  };
+
   if (errorMessage) {
     return (
       <div className="error-container">
@@ -170,13 +151,37 @@ export default function LatestEntry({ onLoad }) {
           viewBox="0 0 200 200"
         >
           <circle fill="#FFE500" stroke="#FFE500" strokeWidth="15" r="15" cx="40" cy="100">
-            <animate attributeName="opacity" calcMode="spline" dur="2s" values="1;0;1" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-0.4s" />
+            <animate
+              attributeName="opacity"
+              calcMode="spline"
+              dur="2s"
+              values="1;0;1"
+              keySplines=".5 0 .5 1;.5 0 .5 1"
+              repeatCount="indefinite"
+              begin="-0.4s"
+            />
           </circle>
           <circle fill="#FFE500" stroke="#FFE500" strokeWidth="15" r="15" cx="100" cy="100">
-            <animate attributeName="opacity" calcMode="spline" dur="2s" values="1;0;1" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-0.2s" />
+            <animate
+              attributeName="opacity"
+              calcMode="spline"
+              dur="2s"
+              values="1;0;1"
+              keySplines=".5 0 .5 1;.5 0 .5 1"
+              repeatCount="indefinite"
+              begin="-0.2s"
+            />
           </circle>
           <circle fill="#FFE500" stroke="#FFE500" strokeWidth="15" r="15" cx="160" cy="100">
-            <animate attributeName="opacity" calcMode="spline" dur="2s" values="1;0;1" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0s" />
+            <animate
+              attributeName="opacity"
+              calcMode="spline"
+              dur="2s"
+              values="1;0;1"
+              keySplines=".5 0 .5 1;.5 0 .5 1"
+              repeatCount="indefinite"
+              begin="0s"
+            />
           </circle>
         </svg>
       </div>

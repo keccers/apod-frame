@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import pool from "../../lib/db";
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     try {
       const { fid, username, notificationToken, notificationUrl } = req.body;

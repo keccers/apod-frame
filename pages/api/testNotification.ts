@@ -1,9 +1,8 @@
-```javascript
 import { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
@@ -34,11 +33,11 @@ export default async function handler(req, res) {
     const user = userResult.rows[0];
 
     const notificationPayload = {
-      notificationId: uuidv4(), 
-      title: latestEntry.title.substring(0, 32),
+      notificationId: uuidv4(), // Unique ID to prevent duplicates
+      title: latestEntry.title.substring(0, 32), // Max 32 characters
       body: "Test notification! Click to view today's Astronomy Picture of the Day.",
       targetUrl: "https://apod-frame.replit.app",
-      tokens: [user.notification_token],
+      tokens: [user.notification_token], // Send only to you
     };
 
     console.log("[Test Notification] 📤 Sending notification...", notificationPayload);
@@ -58,4 +57,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
-```

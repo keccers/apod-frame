@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
@@ -31,16 +31,17 @@ export default async function handler(req, res) {
 
     console.log(`[Notifications] ✅ Sending notifications to ${userResult.rows.length} users...`);
 
+    // 🔥 Batch users into groups of 100 (Farcaster's limit)
     const batchSize = 100;
     for (let i = 0; i < userResult.rows.length; i += batchSize) {
       const batch = userResult.rows.slice(i, i + batchSize);
 
       const tokens = batch.map(user => user.notification_token);
-      const url = batch[0].notification_url; 
+      const url = batch[0].notification_url; // Assume all users share the same notification URL
 
       const notificationPayload = {
-        notificationId: uuidv4(),
-        title: latestEntry.title.substring(0, 32),
+        notificationId: uuidv4(), // Unique ID to prevent duplicates
+        title: latestEntry.title.substring(0, 32), // Max 32 characters
         body: "Click to view the latest Astronomy Picture of the Day!",
         targetUrl: latestEntry.link,
         tokens,
@@ -64,3 +65,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
+
