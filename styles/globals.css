@@ -140,27 +140,49 @@ body {
 /* ========================================================= */
 /* 🔹 READ MORE BUTTON */
 /* ========================================================= */
-.rss-button {
-  font-family: "Nunito", serif;
-  display: block;
-  width: 100%;
-  background-color: #301885;
-  color: #ffe500;
-  padding: 0.8rem;
+.share-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-top: 1rem;
-  margin-bottom: 1.5rem;
-  border: none;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.3s;
+  margin-bottom: 2rem;
+  margin-left: auto;
+  margin-right: auto;
+  gap: 1rem;
+  width: 100%;
+  text-align: center;
 }
 
-.rss-button:hover {
+.entry-button {
+  font-family: "Nunito", serif;
+  background-color: #301885;
+  display: flex;
+  color: #ffe500;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  text-decoration: none;
+  text-align: center;
+  width: 100%;
+  max-width: 500px; /* Optional: limit max size on larger screens */
+  gap: 0.5rem;
+}
+
+.entry-button svg.icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.entry-button:hover {
   background-color: #006CA9;
 }
 
-.rss-button:disabled {
+.entry-button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
 }
@@ -228,4 +250,18 @@ iframe {
 .share-no-image {
   color: white;
   font-size: 24px;
+}
+
+/* On wider screens, arrange buttons side by side and center them */
+/* Side-by-side on larger screens */
+@media (min-width: 640px) {
+  .share-button-container {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .entry-button {
+    flex: 1;
+    max-width: none; /* Remove max-width restriction on wide viewports */
+  }
 }

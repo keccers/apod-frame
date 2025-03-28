@@ -1,5 +1,5 @@
-const BASE_URL = "https://apod-frame.replit.app"; // ✅ Your deployed domain
-const DEFAULT_IMAGE = `${BASE_URL}/apod-image.png`; // ✅ Ensure absolute fallback
+const BASE_URL = "https://apod-frame.replit.app";
+const DEFAULT_IMAGE = `${BASE_URL}/apod-image.png`;
 
 export interface Entry {
   id: string;
@@ -16,18 +16,22 @@ export interface Entry {
  * ✅ Generates a stable Frame Metadata JSON
  */
 export function generateFrameMetadata(entry: Entry | null): string {
-  // Use the latest edited share image (if available), else fallback
   const imageUrl = entry?.share_image_edit || entry?.share_image || DEFAULT_IMAGE;
+  const id = entry?.id;
+  const title = "Discover the cosmos";
+
+  // If we have an ID, construct a permalink path
+  const frameUrl = id ? `${BASE_URL}/entry/${id}` : BASE_URL;
 
   const frameEmbed = {
     version: "next",
     imageUrl,
     button: {
-      title: "Discover the cosmos",
+      title,
       action: {
         type: "launch_frame",
         name: "APOD",
-        url: BASE_URL,
+        url: frameUrl,
         splashImageUrl: `${BASE_URL}/apod-icon.png`,
         splashBackgroundColor: "#301885",
       },
@@ -36,5 +40,8 @@ export function generateFrameMetadata(entry: Entry | null): string {
 
   console.log("🟢 Generated Frame Metadata:", frameEmbed);
 
-  return JSON.stringify(frameEmbed).replace(/</g, "\\u003c"); // ✅ Ensure safe escaping
+  return JSON.stringify(frameEmbed)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
 }

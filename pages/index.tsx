@@ -4,37 +4,30 @@ import dynamic from "next/dynamic";
 import { generateFrameMetadata, Entry } from "@/lib/frameMetadata";
 
 const LatestEntry = dynamic(() => import("../components/LatestEntry"), {
-  ssr: false, // ✅ Ensures it's only loaded client-side
+  ssr: false,
 });
 
 const BASE_URL = "https://apod-frame.replit.app";
 
-// ✅ Server-Side Fetching & Metadata Generation
 export async function getServerSideProps() {
   try {
-    console.log("🔄 Fetching latest entry from API (SSR)...");
+    const res = await fetch(`${BASE_URL}/api/fetchLatest`);
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
 
-    const response = await fetch(`${BASE_URL}/api/fetchLatest`);
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-    const latestEntry: Entry = await response.json();
-    console.log("✅ Latest entry received (SSR):", latestEntry.title);
-
-    // ✅ Generate metadata on the server
-    const frameMetadata = generateFrameMetadata(latestEntry);
+    const entry: Entry = await res.json();
 
     return {
       props: {
-        latestEntry,
-        frameMetadata, // ✅ Passed as a prop
+        latestEntry: entry,
+        frameMetadata: generateFrameMetadata(entry),
       },
     };
-  } catch (error) {
-    console.error("❌ Error in getServerSideProps:", error);
+  } catch (err) {
+    console.error("❌ Error fetching latest entry:", err);
     return {
       props: {
         latestEntry: null,
-        frameMetadata: generateFrameMetadata(null), // ✅ Ensure metadata is passed
+        frameMetadata: generateFrameMetadata(null),
       },
     };
   }
@@ -46,7 +39,6 @@ export default function Home({ latestEntry, frameMetadata }: { latestEntry: Entr
   return (
     <>
       <Head>
-        {/* ✅ Server-Side Injected Metadata */}
         <meta name="fc:frame" content={frameMetadata} />
       </Head>
 

@@ -29,8 +29,14 @@ const formatDate = (isoDate: string): string => {
   });
 };
 
-export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void }) {
-  const [entry, setEntry] = useState<Entry | null>(null);
+export default function LatestEntry({
+  onLoad,
+  initialEntry,
+}: {
+  onLoad: (entry: Entry) => void;
+  initialEntry?: Entry;
+}) {
+  const [entry, setEntry] = useState<Entry | null>(initialEntry || null);
   const [sdk, setSdk] = useState<any>(null);
   const [context, setContext] = useState<any>(null);
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
@@ -91,13 +97,20 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
   };
 
   useEffect(() => {
+    if (initialEntry) {
+      console.log("✅ Using initial entry (SSR):", initialEntry.title);
+      onLoad(initialEntry);
+      return;
+    }
+
     const fetchEntry = async () => {
       try {
         const cachedEntry = sessionStorage.getItem(CACHE_KEY);
         if (cachedEntry) {
+          const parsed = JSON.parse(cachedEntry);
           console.log("🟡 Using cached latest entry...");
-          setEntry(JSON.parse(cachedEntry));
-          onLoad(JSON.parse(cachedEntry));
+          setEntry(parsed);
+          onLoad(parsed);
         }
 
         console.log("🔄 Fetching latest entry from API...");
@@ -111,12 +124,13 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
         setEntry(freshEntry);
         onLoad(freshEntry);
       } catch (error) {
+        console.error("❌ Error fetching latest entry:", error);
         setErrorMessage("Failed to load content.");
       }
     };
 
     fetchEntry();
-  }, [onLoad]);
+  }, [onLoad, initialEntry]);
 
   useEffect(() => {
     if (sdk && isNewUser === true) {
@@ -213,6 +227,65 @@ export default function LatestEntry({ onLoad }: { onLoad: (entry: Entry) => void
           ) : (
             <p>No description available.</p>
           )}
+        </div>
+        <div className="share-button-container">
+          <button
+            className="entry-button"
+            onClick={() => {
+              if (!sdk) return;
+
+              const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(
+                entry.title
+              )}&embeds[]=${encodeURIComponent(`https://apod-frame.replit.app/entry/${entry.id}`)}`;
+
+              console.log("🔗 Opening share URL:", shareUrl);
+              sdk.actions.openUrl(shareUrl);
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect width="18" height="18" x="3" y="3" rx="2" />
+              <path d="M8 8h8v8" />
+              <path d="m8 16 8-8" />
+            </svg>
+            <span>Share on Warpcast</span>
+          </button>
+
+          <button
+            className="entry-button"
+            onClick={() => {
+              if (!sdk) return;
+
+              console.log("🔗 Opening entry link:", entry.link);
+              sdk.actions.openUrl(entry.link);
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 11a9 9 0 0 1 9 9" />
+              <path d="M4 4a16 16 0 0 1 16 16" />
+              <circle cx="5" cy="19" r="1" />
+            </svg>
+            <span>View on apod.gov</span>
+          </button>
         </div>
       </div>
     </>
