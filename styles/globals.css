@@ -263,5 +263,143 @@ iframe {
   .entry-button {
     flex: 1;
     max-width: none; /* Remove max-width restriction on wide viewports */
+    font-size: .95rem;
+  }
+}
+
+/* ========================================================= */
+/* ARCHIVE PAGE  */
+/* ========================================================= */
+
+.archive-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.archive-container-title {
+  font-family: "Libre Caslon Display", serif;
+  text-align: center;
+  font-size: 3rem;
+  color: #f6f4ef;
+  margin-bottom: .25rem;
+  letter-spacing: -.05rem;
+}
+
+.archive-container a {
+  text-decoration:none;
+}
+
+.archive-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+.archive-item {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  background-color: #f6f4ef;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.archive-item:hover {
+  transform: translateY(-4px);
+}
+
+.archive-thumbnail {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.archive-title, .archive-title a {
+  font-size: 1rem;
+  padding: 0.75rem;
+  color: #301885;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.archive-title:hover {
+  text-decoration: none;
+}
+
+/* Responsive grid columns */
+@media (min-width: 200px) {
+  .archive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .archive-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ========================================================= */
+/* 🔹 READ MORE BUTTON */
+/* ========================================================= */
+.page-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  margin-left: auto;
+  margin-right: auto;
+  gap: 1rem;
+  width: 90%;
+  text-align: center;
+}
+
+.page-button {
+  font-family: "Nunito", serif;
+  background-color: #301885;
+  display: flex;
+  color: #ffe500;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  text-decoration: none;
+  text-align: center;
+  width: 100%;
+  max-width: 500px; /* Optional: limit max size on larger screens */
+  gap: 0.5rem;
+}
+
+.page-button svg.icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.page-button:hover {
+  background-color: #006CA9;
+}
+
+.page-button:disabled {
+  background-color: #231e33;
+  cursor: not-allowed;
+}
+/* On wider screens, arrange buttons side by side and center them */
+/* Side-by-side on larger screens */
+@media (min-width: 640px) {
+  .page-button-container {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .page-button {
+    flex: 1;
+    max-width: none; /* Remove max-width restriction on wide viewports */
   }
 }

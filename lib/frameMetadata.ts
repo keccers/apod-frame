@@ -16,12 +16,36 @@ export interface Entry {
  * ✅ Generates a stable Frame Metadata JSON
  */
 export function generateFrameMetadata(entry: Entry | null): string {
-  const imageUrl = entry?.share_image_edit || entry?.share_image || DEFAULT_IMAGE;
-  const id = entry?.id;
-  const title = "Discover the cosmos";
+  // Special handling for archive metadata
+  if (!entry) {
+    const frameEmbed = {
+      version: "next",
+      imageUrl: DEFAULT_IMAGE,
+      button: {
+        title: "View the APOD archive",
+        action: {
+          type: "launch_frame",
+          name: "APOD",
+          url: `${BASE_URL}/archive`,
+          splashImageUrl: `${BASE_URL}/apod-icon.png`,
+          splashBackgroundColor: "#301885",
+        },
+      },
+    };
 
-  // If we have an ID, construct a permalink path
-  const frameUrl = id ? `${BASE_URL}/entry/${id}` : BASE_URL;
+    console.log("🟢 Generated Archive Frame Metadata:", frameEmbed);
+
+    return JSON.stringify(frameEmbed)
+      .replace(/</g, "\\u003c")
+      .replace(/>/g, "\\u003e")
+      .replace(/&/g, "\\u0026");
+  }
+
+  // Normal per-entry metadata
+  const imageUrl = entry.share_image_edit || entry.share_image || DEFAULT_IMAGE;
+  const id = entry.id;
+  const title = "Discover the cosmos";
+  const frameUrl = `${BASE_URL}/entry/${id}`;
 
   const frameEmbed = {
     version: "next",
@@ -38,7 +62,7 @@ export function generateFrameMetadata(entry: Entry | null): string {
     },
   };
 
-  console.log("🟢 Generated Frame Metadata:", frameEmbed);
+  console.log("🟢 Generated Entry Frame Metadata:", frameEmbed);
 
   return JSON.stringify(frameEmbed)
     .replace(/</g, "\\u003c")

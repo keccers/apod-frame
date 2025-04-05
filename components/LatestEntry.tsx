@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router"; // ⬅️ Add this at the top of your file
+
 
 // Dynamically import the Farcaster SDK
 const sdkPromise = import("@farcaster/frame-sdk").then((mod) => mod.default);
@@ -41,6 +43,7 @@ export default function LatestEntry({
   const [context, setContext] = useState<any>(null);
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const loadSDK = async () => {
@@ -228,6 +231,7 @@ export default function LatestEntry({
             <p>No description available.</p>
           )}
         </div>
+
         <div className="share-button-container">
           <button
             className="entry-button"
@@ -285,6 +289,31 @@ export default function LatestEntry({
               <circle cx="5" cy="19" r="1" />
             </svg>
             <span>View on apod.gov</span>
+          </button>
+
+          <button
+            className="entry-button"
+            onClick={() => {
+              router.push("/archive");
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 4h16v4H4z" />
+              <path d="M4 8v12h16V8" />
+              <line x1="9" y1="12" x2="15" y2="12" />
+              <line x1="9" y1="16" x2="15" y2="16" />
+            </svg>
+            <span>Browse Archive</span>
           </button>
         </div>
       </div>
