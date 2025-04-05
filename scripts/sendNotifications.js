@@ -5,7 +5,7 @@ const fetch = require("node-fetch");
 const sendNotifications = async () => {
   try {
     console.log("[Notifications] 🚀 Fetching latest RSS entry...");
-    const rssResult = await pool.query("SELECT * FROM latest_rss ORDER BY date DESC LIMIT 1");
+    const rssResult = await pool.query("SELECT * FROM latest_rss ORDER BY date DESC, id DESC LIMIT 1");
 
     if (rssResult.rows.length === 0) {
       console.warn("[Notifications] ❌ No RSS entry found.");
@@ -15,16 +15,14 @@ const sendNotifications = async () => {
     const latestEntry = rssResult.rows[0];
     console.log("[Notifications] ✅ Latest RSS Entry:", latestEntry);
 
-    // ✅ Check if the latest entry was published today
-    const today = new Date().toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    // ✅ Check if we've already sent a notification for this entry
+    const notificationCheck = await pool.query(
+      "SELECT COUNT(*) FROM sent_notifications WHERE entry_id = $1",
+      [latestEntry.id]
+    );
 
-    if (latestEntry.date !== today) {
-      console.log("[Notifications] ❌ No new entry for today. Skipping notifications.");
+    if (parseInt(notificationCheck.rows[0].count, 10) > 0) {
+      console.log("[Notifications] ❌ Notification already sent for this entry. Skipping.");
       return;
     }
 
@@ -48,7 +46,6 @@ const sendNotifications = async () => {
       usersByUrl[user.notification_url].push(user.notification_token);
     });
 
-    // ✅ Define a set of random notification body messages
     const notificationBodies = [
       "The universe has something amazing to show you today...",
       "Your daily dose of cosmic beauty has landed!",
@@ -67,19 +64,17 @@ const sendNotifications = async () => {
 
       for (let i = 0; i < tokens.length; i += batchSize) {
         const batchTokens = tokens.slice(i, i + batchSize);
-
-        // ✅ Randomly select a notification body
         const randomBody = notificationBodies[Math.floor(Math.random() * notificationBodies.length)];
 
         const notificationTitle = latestEntry.title
-          ? latestEntry.title.substring(0, 32) // Ensure it fits within the 32-char limit
+          ? latestEntry.title.substring(0, 32)
           : "There's a new astronomy photo!";
 
         const notificationPayload = {
           notificationId: uuidv4(),
           title: notificationTitle,
-          body: randomBody, // ✅ Use a random body message
-          targetUrl: "https://apod-frame.replit.app/", // ✅ Replace with your actual homepage URL
+          body: randomBody,
+          targetUrl: "https://apod-frame.replit.app/",
           tokens: batchTokens,
         };
 
@@ -97,15 +92,22 @@ const sendNotifications = async () => {
 
           if (result.invalidTokens && result.invalidTokens.length > 0) {
             console.warn("[Notifications] ❌ Invalid Tokens Found:", result.invalidTokens);
-            await pool.query("UPDATE users SET notification_token = NULL WHERE notification_token = ANY($1)", [
-              result.invalidTokens,
-            ]);
+            await pool.query(
+              "UPDATE users SET notification_token = NULL WHERE notification_token = ANY($1)",
+              [result.invalidTokens]
+            );
           }
         } catch (error) {
           console.error("[Notifications] ❌ Error sending batch:", error);
         }
       }
     }
+
+    // ✅ Log that we've sent a notification for this entry
+    await pool.query(
+      "INSERT INTO sent_notifications (entry_id, sent_at) VALUES ($1, NOW())",
+      [latestEntry.id]
+    );
   } catch (error) {
     console.error("[Notifications] ❌ Error sending notifications:", error);
   }
