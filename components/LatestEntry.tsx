@@ -235,15 +235,21 @@ export default function LatestEntry({
         <div className="share-button-container">
           <button
             className="entry-button"
-            onClick={() => {
-              if (!sdk) return;
+            onClick={async () => {
+              if (!sdk || !entry) return;
 
-              const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(
-                entry.title
-              )}&embeds[]=${encodeURIComponent(`https://apod-frame.replit.app/entry/${entry.id}`)}`;
+              const text = entry.title;
+              const embeds = [`https://apod-frame.replit.app/entry/${entry.id}`];
 
-              console.log("🔗 Opening share URL:", shareUrl);
-              sdk.actions.openUrl(shareUrl);
+              try {
+                console.log("🟣 Composing cast via SDK:", { text, embeds });
+                await sdk.actions.composeCast({
+                  text,
+                  embeds,
+                });
+              } catch (err) {
+                console.error("❌ Failed to compose cast:", err);
+              }
             }}
           >
             <svg
@@ -261,7 +267,7 @@ export default function LatestEntry({
               <path d="M8 8h8v8" />
               <path d="m8 16 8-8" />
             </svg>
-            <span>Share on Warpcast</span>
+            <span>Cast</span>
           </button>
 
           <button
